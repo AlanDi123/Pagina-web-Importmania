@@ -192,19 +192,3 @@ export interface StockUpdate {
   stock: number;
   operation?: 'set' | 'add' | 'remove';
 }
-
-export default {
-  type ProductWithRelations,
-  type ProductListItem,
-  type ProductDetail,
-  type VariantOption,
-  type SelectedVariant,
-  type ProductFilters,
-  type ProductSort,
-  type ProductQuery,
-  type PaginatedProducts,
-  type ProductFormData,
-  type VariantFormData,
-  type ProductImageFormData,
-  type StockUpdate,
-};

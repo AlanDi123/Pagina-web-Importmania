@@ -91,8 +91,8 @@ export function validateWebhookSignature(
 /**
  * Mapea el estado de pago de MercadoPago a nuestro sistema
  */
-export function mapPaymentStatus(mpStatus: string): 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'PENDING' {
-  const statusMap: Record<string, 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'PENDING'> = {
+export function mapPaymentStatus(mpStatus: string): 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'PENDING' | 'REFUNDED' {
+  const statusMap: Record<string, 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'PENDING' | 'REFUNDED'> = {
     approved: 'APPROVED',
     rejected: 'REJECTED',
     cancelled: 'CANCELLED',

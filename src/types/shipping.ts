@@ -156,20 +156,3 @@ export interface ShippingSummary {
   isPickup: boolean;
   pickupInfo?: PickupInfo;
 }
-
-export default {
-  type ShippingZoneWithRates,
-  type ShippingQuote,
-  type ShippingQuoteInput,
-  type ShippingAddress,
-  type SelectedShippingMethod,
-  type ShippingZoneFormData,
-  type ShippingRateFormData,
-  type ShippingCalculatorResult,
-  type PickupInfo,
-  type ShippingStatus,
-  type ShippingTracking,
-  type ArgentinaProvince,
-  type StoreShippingConfig,
-  type ShippingSummary,
-};

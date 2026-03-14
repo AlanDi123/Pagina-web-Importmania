@@ -162,17 +162,3 @@ export interface NotificationTemplate {
   channels: NotificationChannel[];
   variables: string[];
 }
-
-export default {
-  type NotificationWithUser,
-  type NotificationDisplay,
-  type NotificationAdmin,
-  type NotificationTypeInfo,
-  type NotificationTypeConfig,
-  type NotificationPreferences,
-  type NotificationStats,
-  type NotificationData,
-  type RealtimeNotification,
-  type PushSubscription,
-  type NotificationTemplate,
-};

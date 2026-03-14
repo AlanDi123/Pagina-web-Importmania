@@ -58,8 +58,10 @@ export async function GET(request: NextRequest) {
     const lowStockProducts = await prisma.product.count({
       where: {
         isActive: true,
-        stock: { lte: 5 },
-        stock: { gt: 0 },
+        AND: [
+          { stock: { lte: 5 } },
+          { stock: { gt: 0 } },
+        ],
       },
     });
 

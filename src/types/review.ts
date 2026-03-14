@@ -149,16 +149,3 @@ export interface ReviewModeration {
   reason?: string;
   moderatorId: string;
 }
-
-export default {
-  type ReviewWithRelations,
-  type ReviewDisplay,
-  type ReviewListItem,
-  type ReviewSummary,
-  type ReviewFormData,
-  type ReviewFilters,
-  type ReviewStats,
-  type ReviewRequestEmail,
-  type ReviewVote,
-  type ReviewModeration,
-};

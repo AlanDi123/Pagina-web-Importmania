@@ -135,16 +135,3 @@ export interface RelatedPost {
   publishedAt: Date | null;
   relevanceScore: number;
 }
-
-export default {
-  type BlogPostListItem,
-  type BlogPostDetail,
-  type BlogPostAdmin,
-  type BlogPostFormData,
-  type BlogFilters,
-  type BlogStats,
-  type BlogArchive,
-  type BlogAuthor,
-  type TableOfContents,
-  type RelatedPost,
-};

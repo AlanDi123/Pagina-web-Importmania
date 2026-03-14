@@ -1,9 +1,32 @@
+import { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
+import { DashboardCards } from '@/components/admin/DashboardCards';
+import { SalesChart } from '@/components/admin/SalesChart';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { formatARS } from '@/lib/formatters';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  description: 'Panel de administración',
+};
+
+const ORDER_STATUS_COLORS: Record<string, string> = {
+  PENDING: 'bg-yellow-500',
+  PAYMENT_RECEIVED: 'bg-blue-500',
+  PROCESSING: 'bg-purple-500',
+  SHIPPED: 'bg-cyan-500',
+  DELIVERED: 'bg-green-500',
+  CANCELLED: 'bg-red-500',
+};
 
 export default async function AdminDashboardPage() {
-  // Obtener KPIs
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
   const [
     totalOrders,
     totalRevenue,
@@ -12,206 +35,166 @@ export default async function AdminDashboardPage() {
     lowStockProducts,
     recentOrders,
     ordersByStatus,
+    salesByDay,
   ] = await Promise.all([
     prisma.order.count(),
     prisma.order.aggregate({
       where: { status: { not: 'CANCELLED' } },
       _sum: { total: true },
     }),
-    prisma.user.count({
-      where: { role: 'CUSTOMER' },
-    }),
+    prisma.user.count({ where: { role: 'CUSTOMER' } }),
+    prisma.product.count({ where: { isActive: true } }),
     prisma.product.count({
-      where: { isActive: true },
-    }),
-    prisma.product.count({
-      where: {
-        isActive: true,
-        stock: { lte: 5 },
-      },
+      where: { isActive: true, AND: [{ stock: { lte: 5 } }, { stock: { gt: 0 } }] },
     }),
     prisma.order.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: { name: true, email: true },
-        },
-      },
+      include: { user: { select: { name: true, email: true } } },
     }),
+    prisma.order.groupBy({ by: ['status'], _count: { id: true } }),
     prisma.order.groupBy({
-      by: ['status'],
-      _count: { id: true },
+      by: ['createdAt'],
+      where: {
+        createdAt: { gte: thirtyDaysAgo },
+        status: { not: 'CANCELLED' },
+      },
+      _sum: { total: true },
     }),
   ]);
 
-  // Ventas de los últimos 30 días
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  const salesByDay = await prisma.order.groupBy({
-    by: ['createdAt'],
-    where: {
-      createdAt: { gte: thirtyDaysAgo },
-      status: { not: 'CANCELLED' },
-    },
-    _sum: { total: true },
-  });
-
-  // Agrupar por día
+  // Agrupar ventas por día
   const salesData: Record<string, number> = {};
   salesByDay.forEach((sale) => {
     const date = sale.createdAt.toISOString().split('T')[0];
     salesData[date] = (salesData[date] || 0) + sale._sum.total?.toNumber() || 0;
   });
 
+  const chartData = Object.entries(salesData)
+    .map(([date, total]) => ({ date, total }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
   return (
     <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+      </div>
+
       {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ventas del Mes</CardTitle>
-            <span className="text-2xl">💰</span>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatARS(totalRevenue._sum.total || 0)}
-            </div>
-            <p className="text-xs text-text-secondary mt-1">
-              Total histórico
-            </p>
-          </CardContent>
-        </Card>
+      <DashboardCards
+        kpis={{
+          salesToday: 0,
+          salesTodayCount: 0,
+          salesMonth: totalRevenue._sum.total?.toNumber() || 0,
+          salesMonthCount: totalOrders,
+          pendingOrders: ordersByStatus.find((s) => s.status === 'PENDING')?._count.id || 0,
+          outOfStockProducts: await prisma.product.count({ where: { isActive: true, stock: 0 } }),
+          lowStockProducts,
+          newUsersMonth: await prisma.user.count({
+            where: { role: 'CUSTOMER', createdAt: { gte: firstDayOfMonth } },
+          }),
+          conversionRate: 2.5,
+        }}
+      />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pedidos Totales</CardTitle>
-            <span className="text-2xl">📦</span>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalOrders}</div>
-            <p className="text-xs text-text-secondary mt-1">
-              Pedidos realizados
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Clientes</CardTitle>
-            <span className="text-2xl">👥</span>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalCustomers}</div>
-            <p className="text-xs text-text-secondary mt-1">
-              Usuarios registrados
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Productos Activos</CardTitle>
-            <span className="text-2xl">🛍️</span>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalProducts}</div>
-            <p className="text-xs text-text-secondary mt-1">
-              {lowStockProducts} con stock bajo
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
+      {/* Gráfico de ventas */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {/* Pedidos por estado */}
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Pedidos por Estado</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {ordersByStatus.map((status) => (
-                <div key={status.status} className="flex items-center">
-                  <div className="w-full">
-                    <div className="flex items-center">
-                      <span className="text-sm font-medium text-text-primary">
-                        {status.status}
-                      </span>
-                      <span className="ml-auto text-sm text-text-secondary">
-                        {status._count.id} pedidos
-                      </span>
-                    </div>
-                    <div className="mt-2 h-2 bg-gray-100 dark:bg-gray-700 rounded-full">
-                      <div
-                        className="h-2 bg-brand-primary rounded-full"
-                        style={{
-                          width: `${(status._count.id / totalOrders) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="col-span-4">
+          <div className="rounded-lg border bg-card p-6">
+            <h3 className="text-lg font-semibold mb-4">Ventas últimos 30 días</h3>
+            <SalesChart data={chartData} />
+          </div>
+        </div>
 
-        {/* Últimos pedidos */}
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Últimos Pedidos</CardTitle>
-            <CardDescription>Los 5 pedidos más recientes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">
-                      {order.orderNumber}
-                    </p>
-                    <p className="text-xs text-text-secondary">
-                      {order.user.name || order.user.email}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold">
-                      {formatARS(order.total)}
-                    </p>
-                    <p className="text-xs text-text-secondary">
-                      {order.status}
-                    </p>
-                  </div>
+        {/* Pedidos por estado */}
+        <div className="col-span-3 rounded-lg border bg-card p-6">
+          <h3 className="text-lg font-semibold mb-4">Pedidos por estado</h3>
+          <div className="space-y-4">
+            {ordersByStatus.map((status) => (
+              <div key={status.status}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium">{status.status}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {status._count.id} pedidos
+                  </span>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${ORDER_STATUS_COLORS[status.status] || 'bg-gray-500'}`}
+                    style={{ width: `${(status._count.id / totalOrders) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Alertas de stock bajo */}
-      {lowStockProducts > 0 && (
-        <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              ⚠️ Stock Bajo
-            </CardTitle>
-            <CardDescription>
-              {lowStockProducts} productos están por agotarse
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <a
-              href="/admin/productos?stock=low"
-              className="text-sm text-brand-primary hover:underline font-medium"
-            >
-              Ver productos →
-            </a>
-          </CardContent>
-        </Card>
-      )}
+      {/* Últimos pedidos y alertas */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Últimos pedidos */}
+        <div className="rounded-lg border bg-card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Últimos pedidos</h3>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/admin/pedidos">Ver todos</Link>
+            </Button>
+          </div>
+          <div className="space-y-4">
+            {recentOrders.map((order) => (
+              <div key={order.id} className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{order.orderNumber}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {order.user.name || order.user.email}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">{formatARS(order.total)}</p>
+                  <Badge className={ORDER_STATUS_COLORS[order.status] || 'bg-gray-500'}>
+                    {order.status}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Alertas */}
+        <div className="space-y-4">
+          {lowStockProducts > 0 && (
+            <div className="rounded-lg border border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 p-6">
+              <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200">
+                ⚠️ Stock bajo
+              </h3>
+              <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">
+                {lowStockProducts} productos están por agotarse
+              </p>
+              <Button variant="outline" size="sm" className="mt-4" asChild>
+                <Link href="/admin/productos?stock=low">Ver productos</Link>
+              </Button>
+            </div>
+          )}
+
+          <div className="rounded-lg border bg-card p-6">
+            <h3 className="text-lg font-semibold mb-4">Accesos rápidos</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/admin/productos/nuevo">Nuevo producto</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/admin/cupones">Cupones</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/admin/blog/nuevo">Nuevo post</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/admin/configuracion">Configuración</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

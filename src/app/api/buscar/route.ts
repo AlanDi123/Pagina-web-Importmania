@@ -33,6 +33,10 @@ export async function GET(request: NextRequest) {
             where: { isMain: true },
             take: 1,
           },
+          categories: {
+            include: { category: { select: { name: true } } },
+            take: 1,
+          },
         },
         orderBy: { salesCount: 'desc' },
       }),

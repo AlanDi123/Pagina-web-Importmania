@@ -229,22 +229,3 @@ export interface ReferralSummary {
   totalEarnings: number;
   referralUrl: string;
 }
-
-export default {
-  type UserWithRelations,
-  type UserListItem,
-  type UserProfile,
-  type FullAddress,
-  type RegisterData,
-  type LoginData,
-  type UpdateProfileData,
-  type AddressFormData,
-  type UserStats,
-  type UserFilters,
-  type UserSession,
-  type OAuthData,
-  type OnboardingProgress,
-  type UserPreferences,
-  type UserActivity,
-  type ReferralSummary,
-};

@@ -270,21 +270,3 @@ export interface OrderEmailSummary {
   trackingCode?: string;
   trackingUrl?: string;
 }
-
-export default {
-  type OrderWithRelations,
-  type OrderListItem,
-  type OrderDetail,
-  type OrderItemDetail,
-  type OrderStatusChange,
-  type OrderTimeline,
-  type OrderFilters,
-  type OrderSort,
-  type OrderQuery,
-  type PaginatedOrders,
-  type CreateOrderData,
-  type UpdateOrderStatusData,
-  type RefundData,
-  type OrderStats,
-  type OrderEmailSummary,
-};

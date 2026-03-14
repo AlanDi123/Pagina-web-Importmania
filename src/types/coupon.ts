@@ -172,17 +172,3 @@ export interface CouponUsage {
   discountAmount: number;
   usedAt: Date;
 }
-
-export default {
-  type CouponWithStats,
-  type CouponListItem,
-  type CouponDisplay,
-  type CouponFormData,
-  type CouponValidationResult,
-  type AppliedCoupon,
-  type CouponStats,
-  type CouponFilters,
-  type CouponTypeLabel,
-  type ReferralCoupon,
-  type CouponUsage,
-};

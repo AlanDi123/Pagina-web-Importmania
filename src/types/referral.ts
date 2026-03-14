@@ -142,15 +142,3 @@ export interface ReferralInviteEmail {
   rewardDescription: string;
   referredRewardDescription: string;
 }
-
-export default {
-  type ReferralWithUsers,
-  type ReferralListItem,
-  type ReferralSummary,
-  type ReferralStats,
-  type ReferralConfig,
-  type CreateReferralData,
-  type ReferralProgress,
-  type ReferralReward,
-  type ReferralInviteEmail,
-};

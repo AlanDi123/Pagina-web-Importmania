@@ -188,19 +188,3 @@ export interface VerifiedCartItem extends CartItemDisplay {
   maxQuantity: number;
   canAddMore: boolean;
 }
-
-export default {
-  type CartItemWithProduct,
-  type CartItemDisplay,
-  type Cart,
-  type EmptyCart,
-  type AddToCartData,
-  type UpdateQuantityData,
-  type CartValidationResult,
-  type AppliedCoupon,
-  type CartSummary,
-  type AbandonedCart,
-  type CartState,
-  type CartActions,
-  type VerifiedCartItem,
-};
