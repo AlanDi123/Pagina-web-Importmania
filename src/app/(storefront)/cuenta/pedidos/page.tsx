@@ -1,4 +1,7 @@
 import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
@@ -35,16 +38,33 @@ const ORDER_STATUS_COLORS: Record<string, string> = {
 };
 
 export default async function PedidosPage() {
-  // En producción, filtrar por usuario logueado
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    redirect('/login?redirect=/cuenta/pedidos');
+  }
+
   const orders = await prisma.order.findMany({
+    where: { userId: session.user.id },
     orderBy: { createdAt: 'desc' },
     take: 20,
   });
 
+  // Obtener config
+  const storeConfig = await prisma.storeConfig.findMany();
+  const config = Object.fromEntries(storeConfig.map((c) => [c.key, c.value]));
+
   return (
     <>
-      <PromoBar enabled={false} />
-      <Header logo="" categories={[]} />
+      <PromoBar
+        text={(config.promoBarText as string) || '¡Envío gratis en compras mayores a $50.000!'}
+        enabled={(config.promoBarEnabled as boolean) || true}
+      />
+
+      <Header
+        logo={config.logo as string}
+        categories={[]}
+      />
 
       <main className="py-8 min-h-[60vh]">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -110,9 +130,19 @@ export default async function PedidosPage() {
         </div>
       </main>
 
-      <Footer categories={[]} socialLinks={{}} contactInfo={{}} />
+      <Footer
+        categories={[]}
+        socialLinks={{
+          instagram: config.instagramUrl as string,
+          facebook: config.facebookUrl as string,
+          tiktok: config.tiktokUrl as string,
+        }}
+        contactInfo={{
+          email: config.contactEmail as string,
+          phone: config.contactPhone as string,
+          address: config.storeAddress as string,
+        }}
+      />
     </>
   );
 }
-
-export default PedidosPage;

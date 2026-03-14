@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Gestión de cupones',
 };
 
-export default async function CuponesPage() {
+export default async function CuponesAdminPage() {
   const coupons = await prisma.coupon.findMany({
     orderBy: { createdAt: 'desc' },
   });

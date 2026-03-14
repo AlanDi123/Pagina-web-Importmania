@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
 
 /**
  * Hook para manejar autenticación y sesión del usuario
@@ -235,24 +234,6 @@ export function useRequireAdmin() {
   }, [isAdmin, isLoading, isAuthenticated, router]);
 
   return { isAdmin, isLoading, isAuthenticated };
-}
-
-/**
- * Hook para obtener usuario actual desde servidor
- * Solo usar en Server Components
- */
-export async function useServerAuth() {
-  const { getServerSession } = await import('next-auth');
-  const { authOptions } = await import('@/lib/auth');
-  
-  const session = await getServerSession(authOptions);
-  
-  return {
-    session,
-    user: session?.user || null,
-    isAuthenticated: !!session,
-    isAdmin: session?.user?.role === 'ADMIN',
-  };
 }
 
 export default useAuth;

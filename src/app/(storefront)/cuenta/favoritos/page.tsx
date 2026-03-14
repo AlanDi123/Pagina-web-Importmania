@@ -1,4 +1,7 @@
 import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
@@ -15,40 +18,60 @@ export const metadata: Metadata = {
 };
 
 export default async function FavoritosPage() {
-  // En producción, obtener favoritos del usuario logueado
-  const products = await prisma.product.findMany({
-    where: { isActive: true, isFeatured: true },
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    redirect('/login?redirect=/cuenta/favoritos');
+  }
+
+  // Obtener wishlist real del usuario
+  const wishlistItems = await prisma.wishlistItem.findMany({
+    where: { userId: session.user.id },
     include: {
-      images: { where: { isMain: true }, take: 1 },
+      product: {
+        include: {
+          images: { where: { isMain: true }, take: 1 },
+        },
+      },
     },
-    take: 8,
   });
 
-  const transformedProducts = products.map((p) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug,
-    shortDescription: p.shortDescription,
-    sku: p.sku,
-    price: p.price.toNumber(),
-    compareAtPrice: p.compareAtPrice?.toNumber() || null,
-    productType: p.productType as 'PHYSICAL' | 'DIGITAL',
-    isActive: p.isActive,
-    isFeatured: p.isFeatured,
-    stock: p.stock,
-    averageRating: p.averageRating.toNumber(),
-    reviewCount: p.reviewCount,
-    salesCount: p.salesCount,
-    mainImage: p.images[0]?.url || null,
+  const products = wishlistItems.map((item) => ({
+    id: item.product.id,
+    name: item.product.name,
+    slug: item.product.slug,
+    shortDescription: item.product.shortDescription,
+    sku: item.product.sku,
+    price: item.product.price.toNumber(),
+    compareAtPrice: item.product.compareAtPrice?.toNumber() || null,
+    productType: item.product.productType as 'PHYSICAL' | 'DIGITAL',
+    isActive: item.product.isActive,
+    isFeatured: item.product.isFeatured,
+    stock: item.product.stock,
+    averageRating: item.product.averageRating.toNumber(),
+    reviewCount: item.product.reviewCount,
+    salesCount: item.product.salesCount,
+    mainImage: item.product.images[0]?.url || null,
     categories: [],
-    tags: p.tags,
-    createdAt: p.createdAt,
+    tags: item.product.tags,
+    createdAt: item.product.createdAt,
   }));
+
+  // Obtener config
+  const storeConfig = await prisma.storeConfig.findMany();
+  const config = Object.fromEntries(storeConfig.map((c) => [c.key, c.value]));
 
   return (
     <>
-      <PromoBar enabled={false} />
-      <Header logo="" categories={[]} />
+      <PromoBar
+        text={(config.promoBarText as string) || '¡Envío gratis en compras mayores a $50.000!'}
+        enabled={(config.promoBarEnabled as boolean) || true}
+      />
+
+      <Header
+        logo={config.logo as string}
+        categories={[]}
+      />
 
       <main className="py-8 min-h-[60vh]">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -74,15 +97,25 @@ export default async function FavoritosPage() {
                 </Button>
               </div>
             ) : (
-              <ProductGrid products={transformedProducts} columns={4} />
+              <ProductGrid products={products} columns={4} />
             )}
           </div>
         </div>
       </main>
 
-      <Footer categories={[]} socialLinks={{}} contactInfo={{}} />
+      <Footer
+        categories={[]}
+        socialLinks={{
+          instagram: config.instagramUrl as string,
+          facebook: config.facebookUrl as string,
+          tiktok: config.tiktokUrl as string,
+        }}
+        contactInfo={{
+          email: config.contactEmail as string,
+          phone: config.contactPhone as string,
+          address: config.storeAddress as string,
+        }}
+      />
     </>
   );
 }
-
-export default FavoritosPage;

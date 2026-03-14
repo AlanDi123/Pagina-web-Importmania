@@ -160,11 +160,20 @@ export async function sendShippingUpdateEmail(
  */
 export async function sendAbandonedCartEmail(
   to: string,
-  cartItems: Array<{ name: string; price: string; image?: string }>,
-  cartTotal: string
+  data: {
+    userName: string;
+    items: Array<{ name: string; price: string; image?: string }>;
+    total: string;
+    recoveryUrl: string;
+  }
 ) {
   const { AbandonedCart } = await import('@/emails/AbandonedCart');
-  const reactComponent = AbandonedCart({ cartItems, cartTotal });
+  const reactComponent = AbandonedCart({
+    userName: data.userName,
+    items: data.items,
+    total: data.total,
+    recoveryUrl: data.recoveryUrl,
+  });
 
   return sendEmail({
     to,

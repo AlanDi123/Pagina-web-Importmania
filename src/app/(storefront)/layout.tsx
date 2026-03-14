@@ -1,7 +1,7 @@
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
-import { initializeTheme } from '@/stores/uiStore';
+import { ThemeInitializer } from '@/components/storefront/ThemeInitializer';
 import './globals.css';
 
 const inter = Inter({
@@ -56,9 +56,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Inicializar tema en el cliente
-  initializeTheme();
-
   return (
     <html lang="es-AR" suppressHydrationWarning>
       <body
@@ -68,6 +65,7 @@ export default function RootLayout({
           jetbrainsMono.variable
         )}
       >
+        <ThemeInitializer />
         {children}
         <Toaster
           position="top-right"

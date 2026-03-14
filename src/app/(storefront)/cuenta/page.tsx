@@ -1,4 +1,7 @@
 import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
@@ -16,23 +19,56 @@ export const metadata: Metadata = {
 };
 
 export default async function CuentaPage() {
-  // En producción, obtener usuario de la sesión
-  // Por ahora mostramos página pública con login CTA
+  const session = await getServerSession(authOptions);
 
-  const stats = {
-    orders: 0,
-    wishlist: 0,
-    referralCode: 'BIENVENIDO',
-  };
+  if (!session?.user?.id) {
+    redirect('/login?redirect=/cuenta');
+  }
+
+  // Obtener datos reales del usuario
+  const [user, ordersCount, wishlistCount] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        referralCode: true,
+        _count: {
+          select: {
+            orders: true,
+            wishlistItems: true,
+          },
+        },
+      },
+    }),
+    prisma.order.count({
+      where: { userId: session.user.id },
+    }),
+    prisma.wishlistItem.count({
+      where: { userId: session.user.id },
+    }),
+  ]);
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  // Obtener config
+  const storeConfig = await prisma.storeConfig.findMany();
+  const config = Object.fromEntries(storeConfig.map((c) => [c.key, c.value]));
 
   return (
     <>
       <PromoBar
-        text="¡Envío gratis en compras mayores a $50.000!"
-        enabled
+        text={(config.promoBarText as string) || '¡Envío gratis en compras mayores a $50.000!'}
+        enabled={(config.promoBarEnabled as boolean) || true}
       />
 
-      <Header logo="" categories={[]} />
+      <Header
+        logo={config.logo as string}
+        categories={[]}
+      />
 
       <main className="py-8 min-h-[60vh]">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -44,7 +80,9 @@ export default async function CuentaPage() {
           />
 
           <div className="mt-8">
-            <h1 className="text-3xl font-bold mb-8">Mi Cuenta</h1>
+            <h1 className="text-3xl font-bold mb-8">
+              Hola, {user.name || 'Usuario'}
+            </h1>
 
             {/* Stats */}
             <div className="grid md:grid-cols-4 gap-6 mb-8">
@@ -54,7 +92,7 @@ export default async function CuentaPage() {
                   <Package className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.orders}</div>
+                  <div className="text-2xl font-bold">{ordersCount}</div>
                   <p className="text-xs text-muted-foreground">Pedidos realizados</p>
                 </CardContent>
               </Card>
@@ -65,7 +103,7 @@ export default async function CuentaPage() {
                   <Heart className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.wishlist}</div>
+                  <div className="text-2xl font-bold">{wishlistCount}</div>
                   <p className="text-xs text-muted-foreground">Productos guardados</p>
                 </CardContent>
               </Card>
@@ -78,9 +116,16 @@ export default async function CuentaPage() {
                 <CardContent>
                   <div className="flex items-center gap-2">
                     <code className="text-lg font-bold bg-muted px-2 py-1 rounded">
-                      {stats.referralCode}
+                      {user.referralCode}
                     </code>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => {
+                        navigator.clipboard.writeText(user.referralCode);
+                      }}
+                    >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
@@ -156,38 +201,23 @@ export default async function CuentaPage() {
                 </CardContent>
               </Card>
             </div>
-
-            {/* Programa de referidos */}
-            <Card className="mt-8 bg-gradient-to-r from-brand-primary/10 to-brand-secondary/10">
-              <CardHeader>
-                <CardTitle>Programa de Referidos</CardTitle>
-                <CardDescription>
-                  Invitá a tus amigos y ganá recompensas
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium mb-2">
-                      Tu código: <code className="bg-background px-2 py-1 rounded ml-2">{stats.referralCode}</code>
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Tus amigos obtienen 10% de descuento y vos ganás $2000 cuando compran.
-                    </p>
-                  </div>
-                  <Button asChild>
-                    <Link href="/referidos">Más información</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </main>
 
-      <Footer categories={[]} socialLinks={{}} contactInfo={{}} />
+      <Footer
+        categories={[]}
+        socialLinks={{
+          instagram: config.instagramUrl as string,
+          facebook: config.facebookUrl as string,
+          tiktok: config.tiktokUrl as string,
+        }}
+        contactInfo={{
+          email: config.contactEmail as string,
+          phone: config.contactPhone as string,
+          address: config.storeAddress as string,
+        }}
+      />
     </>
   );
 }
-
-export default CuentaPage;

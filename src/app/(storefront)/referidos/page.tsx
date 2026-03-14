@@ -1,3 +1,5 @@
+'use client';
+
 import { Metadata } from 'next';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
@@ -209,5 +211,3 @@ export default function ReferidosPage() {
     </>
   );
 }
-
-export default ReferidosPage;

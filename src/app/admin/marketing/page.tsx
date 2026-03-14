@@ -118,5 +118,3 @@ export default function MarketingAdminPage() {
     </div>
   );
 }
-
-export default MarketingAdminPage;

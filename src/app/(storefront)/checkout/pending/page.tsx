@@ -6,10 +6,10 @@ import { Footer } from '@/components/storefront/Footer';
 import { PromoBar } from '@/components/storefront/PromoBar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Package } from 'lucide-react';
+import { Clock, Package } from 'lucide-react';
 import Link from 'next/link';
 
-export default function CheckoutSuccessPage() {
+export default function CheckoutPendingPage() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order') || '';
 
@@ -22,10 +22,10 @@ export default function CheckoutSuccessPage() {
         <div className="container mx-auto max-w-2xl px-4">
           <Card className="text-center">
             <CardHeader>
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <CardTitle className="text-3xl">¡Pedido confirmado!</CardTitle>
+              <Clock className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+              <CardTitle className="text-3xl">Pago en proceso</CardTitle>
               <CardDescription>
-                Tu pedido ha sido creado exitosamente
+                Tu pago está siendo procesado
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -38,11 +38,16 @@ export default function CheckoutSuccessPage() {
 
               <div className="space-y-2">
                 <p className="text-muted-foreground">
-                  Te enviamos un email de confirmación con todos los detalles.
+                  El pago está siendo verificado por MercadoPago. Esto puede tomar unos minutos.
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Podés seguir el estado de tu pedido desde tu cuenta.
+                  Una vez confirmado, recibirás un email de confirmación.
                 </p>
+              </div>
+
+              <div className="flex items-center justify-center gap-2 text-yellow-600">
+                <Package className="h-5 w-5" />
+                <span className="font-medium">Tu pedido está reservado</span>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -50,9 +55,13 @@ export default function CheckoutSuccessPage() {
                   <Link href="/cuenta/pedidos">Ver mis pedidos</Link>
                 </Button>
                 <Button variant="outline" asChild className="flex-1">
-                  <Link href="/productos">Seguir comprando</Link>
+                  <Link href="/">Volver al inicio</Link>
                 </Button>
               </div>
+
+              <p className="text-xs text-muted-foreground">
+                ¿Tenés dudas? Contactanos por WhatsApp o email.
+              </p>
             </CardContent>
           </Card>
         </div>

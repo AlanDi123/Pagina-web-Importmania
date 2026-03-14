@@ -1,4 +1,8 @@
-import { Metadata } from 'next';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { PromoBar } from '@/components/storefront/PromoBar';
@@ -8,14 +12,120 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Heart, MapPin, User } from 'lucide-react';
-
-export const metadata: Metadata = {
-  title: 'Configuración',
-  description: 'Configurá tu cuenta',
-};
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'react-hot-toast';
+import { Heart, MapPin, User, Loader2 } from 'lucide-react';
 
 export default function ConfiguracionPage() {
+  const { data: session, status, update } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+  const [userData, setUserData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+  });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  // Cargar datos del usuario
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      redirect('/login?redirect=/cuenta/configuracion');
+    }
+
+    if (session?.user) {
+      const fetchProfile = async () => {
+        try {
+          const response = await fetch('/api/users/profile');
+          if (response.ok) {
+            const data = await response.json();
+            setUserData({
+              name: data.name || '',
+              email: data.email || '',
+              phone: data.phone || '',
+            });
+          }
+        } catch (error) {
+          console.error('Error al cargar perfil:', error);
+        }
+      };
+
+      fetchProfile();
+    }
+  }, [session, status]);
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/users/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) throw new Error('Error al actualizar');
+
+      await update();
+      toast.success('Perfil actualizado');
+    } catch (error) {
+      toast.error('Error al actualizar perfil');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast.error('La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/users/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al cambiar contraseña');
+      }
+
+      toast.success('Contraseña actualizada');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al cambiar contraseña');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (status === 'loading' || !session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <>
       <PromoBar enabled={false} />
@@ -32,8 +142,6 @@ export default function ConfiguracionPage() {
           />
 
           <div className="mt-8 space-y-8">
-            <h1 className="text-3xl font-bold">Configuración de Cuenta</h1>
-
             {/* Datos personales */}
             <Card>
               <CardHeader>
@@ -45,22 +153,42 @@ export default function ConfiguracionPage() {
                   Actualizá tu información personal
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">Nombre</Label>
-                    <Input id="name" placeholder="Tu nombre" />
+              <CardContent>
+                <form onSubmit={handleUpdateProfile} className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="name">Nombre</Label>
+                      <Input
+                        id="name"
+                        value={userData.name}
+                        onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                        placeholder="Tu nombre"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={userData.email}
+                        disabled
+                        className="bg-muted"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="phone">Teléfono</Label>
+                      <Input
+                        id="phone"
+                        value={userData.phone}
+                        onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
+                        placeholder="+54 11 1234-5678"
+                      />
+                    </div>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" disabled value="usuario@ejemplo.com" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone">Teléfono</Label>
-                    <Input id="phone" placeholder="+54 11 1234-5678" />
-                  </div>
-                </div>
-                <Button>Guardar cambios</Button>
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? 'Guardando...' : 'Guardar cambios'}
+                  </Button>
+                </form>
               </CardContent>
             </Card>
 
@@ -72,26 +200,45 @@ export default function ConfiguracionPage() {
                   Cambiá tu contraseña de acceso
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="currentPassword">Contraseña actual</Label>
-                  <Input id="currentPassword" type="password" />
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
+              <CardContent>
+                <form onSubmit={handleChangePassword} className="space-y-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="newPassword">Nueva contraseña</Label>
-                    <Input id="newPassword" type="password" />
+                    <Label htmlFor="currentPassword">Contraseña actual</Label>
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                    />
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
-                    <Input id="confirmPassword" type="password" />
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="newPassword">Nueva contraseña</Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      />
+                    </div>
                   </div>
-                </div>
-                <Button>Actualizar contraseña</Button>
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? 'Actualizando...' : 'Actualizar contraseña'}
+                  </Button>
+                </form>
               </CardContent>
             </Card>
 
-            {/* Direcciones */}
+            {/* Direcciones - Placeholder */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -103,29 +250,8 @@ export default function ConfiguracionPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">Casa</span>
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                        Predeterminada
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Av. Corrientes 1234, Piso 5, Dpto A
-                      <br />
-                      CABA, Buenos Aires, 1043
-                    </p>
-                    <div className="flex gap-2 mt-4">
-                      <Button variant="outline" size="sm">Editar</Button>
-                      <Button variant="outline" size="sm" className="text-destructive">
-                        Eliminar
-                      </Button>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="w-full">
-                    + Agregar nueva dirección
-                  </Button>
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Funcionalidad próximamente</p>
                 </div>
               </CardContent>
             </Card>
@@ -149,7 +275,7 @@ export default function ConfiguracionPage() {
                       Recibí ofertas y novedades por email
                     </p>
                   </div>
-                  <Button variant="outline" size="sm">Desuscribirse</Button>
+                  <Switch />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -159,7 +285,7 @@ export default function ConfiguracionPage() {
                       Recibí notificaciones en tu navegador
                     </p>
                   </div>
-                  <Button variant="outline" size="sm">Activar</Button>
+                  <Switch />
                 </div>
               </CardContent>
             </Card>
@@ -171,5 +297,3 @@ export default function ConfiguracionPage() {
     </>
   );
 }
-
-export default ConfiguracionPage;
