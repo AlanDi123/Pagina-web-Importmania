@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# No permitir indexación de rutas administrativas y privadas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /cuenta/
+Disallow: /carrito
+Disallow: /checkout/
+Disallow: /buscar
+
+# Sitemap
+Sitemap: https://importmania.com.ar/sitemap.xml
