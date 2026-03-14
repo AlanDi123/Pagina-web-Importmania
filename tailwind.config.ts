@@ -6,6 +6,7 @@ const config: Config = {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
@@ -16,20 +17,12 @@ const config: Config = {
           secondary: '#2ECC71',  // Verde - stock, éxito
           accent: '#FF8C00',     // Naranja - ofertas, CTAs
         },
-        // Fondos y texto
-        background: {
-          light: '#F8FAFC',
-          dark: '#0F172A',
-        },
-        text: {
-          primary: '#1E293B',
-          secondary: '#64748B',
-        },
-        // shadcn/ui compatible colors
+        // shadcn/ui colors - usando variables CSS
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',

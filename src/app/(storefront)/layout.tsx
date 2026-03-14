@@ -2,6 +2,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 import { ThemeInitializer } from '@/components/storefront/ThemeInitializer';
+import Providers from '@/components/storefront/Providers';
 import './globals.css';
 
 const inter = Inter({
@@ -65,31 +66,33 @@ export default function RootLayout({
           jetbrainsMono.variable
         )}
       >
-        <ThemeInitializer />
-        {children}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: 'hsl(var(--background))',
-              color: 'hsl(var(--foreground))',
-              border: '1px solid hsl(var(--border))',
-            },
-            success: {
-              iconTheme: {
-                primary: '#2ECC71',
-                secondary: 'white',
+        <Providers>
+          <ThemeInitializer />
+          {children}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: 'hsl(var(--background))',
+                color: 'hsl(var(--foreground))',
+                border: '1px solid hsl(var(--border))',
               },
-            },
-            error: {
-              iconTheme: {
-                primary: '#EF4444',
-                secondary: 'white',
+              success: {
+                iconTheme: {
+                  primary: '#2ECC71',
+                  secondary: 'white',
+                },
               },
-            },
-          }}
-        />
+              error: {
+                iconTheme: {
+                  primary: '#EF4444',
+                  secondary: 'white',
+                },
+              },
+            }}
+          />
+        </Providers>
       </body>
     </html>
   );

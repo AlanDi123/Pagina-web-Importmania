@@ -14,42 +14,43 @@ interface HomePageProps {
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  // Obtener datos de la DB
-  const [categories, featuredProducts, newProducts, storeConfig] = await Promise.all([
-    prisma.category.findMany({
-      where: { isActive: true, parentId: null },
-      include: {
-        _count: {
-          select: { products: true },
-        },
+  // Obtener datos de la DB (en secuencia para no saturar conexiones)
+  const categories = await prisma.category.findMany({
+    where: { isActive: true, parentId: null },
+    include: {
+      _count: {
+        select: { products: true },
       },
-      orderBy: { sortOrder: 'asc' },
-      take: 8,
-    }),
-    prisma.product.findMany({
-      where: { isActive: true, isFeatured: true },
-      include: {
-        images: {
-          where: { isMain: true },
-          take: 1,
-        },
+    },
+    orderBy: { sortOrder: 'asc' },
+    take: 8,
+  });
+
+  const featuredProducts = await prisma.product.findMany({
+    where: { isActive: true, isFeatured: true },
+    include: {
+      images: {
+        where: { isMain: true },
+        take: 1,
       },
-      orderBy: { salesCount: 'desc' },
-      take: 8,
-    }),
-    prisma.product.findMany({
-      where: { isActive: true },
-      include: {
-        images: {
-          where: { isMain: true },
-          take: 1,
-        },
+    },
+    orderBy: { salesCount: 'desc' },
+    take: 8,
+  });
+
+  const newProducts = await prisma.product.findMany({
+    where: { isActive: true },
+    include: {
+      images: {
+        where: { isMain: true },
+        take: 1,
       },
-      orderBy: { createdAt: 'desc' },
-      take: 8,
-    }),
-    prisma.storeConfig.findMany(),
-  ]);
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 8,
+  });
+
+  const storeConfig = await prisma.storeConfig.findMany();
 
   // Transformar store config a objeto
   const config = Object.fromEntries(

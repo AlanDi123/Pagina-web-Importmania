@@ -25,30 +25,30 @@ export default async function CuentaPage() {
     redirect('/login?redirect=/cuenta');
   }
 
-  // Obtener datos reales del usuario
-  const [user, ordersCount, wishlistCount] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        referralCode: true,
-        _count: {
-          select: {
-            orders: true,
-            wishlistItems: true,
-          },
+  // Obtener datos reales del usuario (en secuencia)
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      referralCode: true,
+      _count: {
+        select: {
+          orders: true,
+          wishlistItems: true,
         },
       },
-    }),
-    prisma.order.count({
-      where: { userId: session.user.id },
-    }),
-    prisma.wishlistItem.count({
-      where: { userId: session.user.id },
-    }),
-  ]);
+    },
+  });
+
+  const ordersCount = await prisma.order.count({
+    where: { userId: session.user.id },
+  });
+
+  const wishlistCount = await prisma.wishlistItem.count({
+    where: { userId: session.user.id },
+  });
 
   if (!user) {
     redirect('/login');

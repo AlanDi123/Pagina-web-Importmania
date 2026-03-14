@@ -27,41 +27,35 @@ export default async function AdminDashboardPage() {
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  const [
-    totalOrders,
-    totalRevenue,
-    totalCustomers,
-    totalProducts,
-    lowStockProducts,
-    recentOrders,
-    ordersByStatus,
-    salesByDay,
-  ] = await Promise.all([
-    prisma.order.count(),
-    prisma.order.aggregate({
-      where: { status: { not: 'CANCELLED' } },
-      _sum: { total: true },
-    }),
-    prisma.user.count({ where: { role: 'CUSTOMER' } }),
-    prisma.product.count({ where: { isActive: true } }),
-    prisma.product.count({
-      where: { isActive: true, AND: [{ stock: { lte: 5 } }, { stock: { gt: 0 } }] },
-    }),
-    prisma.order.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: { user: { select: { name: true, email: true } } },
-    }),
-    prisma.order.groupBy({ by: ['status'], _count: { id: true } }),
-    prisma.order.groupBy({
-      by: ['createdAt'],
-      where: {
-        createdAt: { gte: thirtyDaysAgo },
-        status: { not: 'CANCELLED' },
-      },
-      _sum: { total: true },
-    }),
-  ]);
+  // Ejecutar queries en grupos pequeños para no saturar conexiones
+  const totalOrders = await prisma.order.count();
+  const totalRevenue = await prisma.order.aggregate({
+    where: { status: { not: 'CANCELLED' } },
+    _sum: { total: true },
+  });
+  const totalCustomers = await prisma.user.count({ where: { role: 'CUSTOMER' } });
+  const totalProducts = await prisma.product.count({ where: { isActive: true } });
+  
+  const lowStockProducts = await prisma.product.count({
+    where: { isActive: true, AND: [{ stock: { lte: 5 } }, { stock: { gt: 0 } }] },
+  });
+
+  const recentOrders = await prisma.order.findMany({
+    take: 5,
+    orderBy: { createdAt: 'desc' },
+    include: { user: { select: { name: true, email: true } } },
+  });
+
+  const ordersByStatus = await prisma.order.groupBy({ by: ['status'], _count: { id: true } });
+  
+  const salesByDay = await prisma.order.groupBy({
+    by: ['createdAt'],
+    where: {
+      createdAt: { gte: thirtyDaysAgo },
+      status: { not: 'CANCELLED' },
+    },
+    _sum: { total: true },
+  });
 
   // Agrupar ventas por día
   const salesData: Record<string, number> = {};

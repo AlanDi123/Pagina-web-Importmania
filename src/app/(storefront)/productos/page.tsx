@@ -103,40 +103,41 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
       orderBy.salesCount = 'desc';
   }
 
-  // Fetch productos
-  const [products, total, categories, priceRange] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        images: {
-          where: { isMain: true },
-          take: 1,
-        },
-        categories: {
-          include: { category: { select: { name: true } } },
-          take: 1,
-        },
+  // Fetch productos (en secuencia para no saturar conexiones)
+  const products = await prisma.product.findMany({
+    where,
+    skip: (page - 1) * limit,
+    take: limit,
+    include: {
+      images: {
+        where: { isMain: true },
+        take: 1,
       },
-      orderBy,
-    }),
-    prisma.product.count({ where }),
-    prisma.category.findMany({
-      where: { isActive: true, parentId: null },
-      include: {
-        _count: {
-          select: { products: true },
-        },
+      categories: {
+        include: { category: { select: { name: true } } },
+        take: 1,
       },
-      orderBy: { sortOrder: 'asc' },
-    }),
-    prisma.product.aggregate({
-      where: { isActive: true },
-      _min: { price: true },
-      _max: { price: true },
-    }),
-  ]);
+    },
+    orderBy,
+  });
+
+  const total = await prisma.product.count({ where });
+
+  const categories = await prisma.category.findMany({
+    where: { isActive: true, parentId: null },
+    include: {
+      _count: {
+        select: { products: true },
+      },
+    },
+    orderBy: { sortOrder: 'asc' },
+  });
+
+  const priceRange = await prisma.product.aggregate({
+    where: { isActive: true },
+    _min: { price: true },
+    _max: { price: true },
+  });
 
   // Transformar productos
   const transformedProducts = products.map((p) => ({
@@ -216,8 +217,8 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
           </nav>
 
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar de filtros (desktop) */}
-            <aside className="hidden lg:block w-64 flex-shrink-0">
+            {/* Sidebar de filtros (desktop) - Comentado hasta implementar client-side filters */}
+            {/* <aside className="hidden lg:block w-64 flex-shrink-0">
               <div className="sticky top-24">
                 <FilterSidebar
                   categories={filterCategories}
@@ -230,7 +231,7 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
                   onFilterChange={() => {}}
                 />
               </div>
-            </aside>
+            </aside> */}
 
             {/* Contenido principal */}
             <div className="flex-1">
@@ -242,10 +243,13 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
                     {total} productos encontrados
                   </p>
                 </div>
-                <SortDropdown
+                {/* <SortDropdown
                   currentSort={sort}
                   onSortChange={() => {}}
-                />
+                /> */}
+                <p className="text-sm text-muted-foreground">
+                  Orden: {sort === 'bestselling' ? 'Más vendidos' : sort === 'price_asc' ? 'Precio: menor a mayor' : sort === 'price_desc' ? 'Precio: mayor a menor' : 'Relevancia'}
+                </p>
               </div>
 
               {/* Grid de productos */}

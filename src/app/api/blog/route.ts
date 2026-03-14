@@ -46,28 +46,27 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const [posts, total] = await Promise.all([
-      prisma.blogPost.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { publishedAt: 'desc' },
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          excerpt: true,
-          coverImage: true,
-          authorName: true,
-          isPublished: true,
-          publishedAt: true,
-          viewCount: true,
-          tags: true,
-          createdAt: true,
-        },
-      }),
-      prisma.blogPost.count({ where }),
-    ]);
+    const posts = await prisma.blogPost.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { publishedAt: 'desc' },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        coverImage: true,
+        authorName: true,
+        isPublished: true,
+        publishedAt: true,
+        viewCount: true,
+        tags: true,
+        createdAt: true,
+      },
+    });
+
+    const total = await prisma.blogPost.count({ where });
 
     const transformedPosts = posts.map((post) => ({
       ...post,

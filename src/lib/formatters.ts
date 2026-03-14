@@ -1,17 +1,15 @@
-import { Decimal } from '@prisma/client/runtime/library';
-
 /**
  * Formatea un número a pesos argentinos (ARS)
  * Formato: $ 15.000,00 (punto de miles, coma decimal)
  */
-export function formatARS(amount: number | Decimal | string | null | undefined): string {
+export function formatARS(amount: number | string | null | undefined): string {
   if (amount === null || amount === undefined) return '$ 0,00';
 
   const numAmount = typeof amount === 'string'
     ? parseFloat(amount)
-    : amount instanceof Decimal
-      ? amount.toNumber()
-      : amount;
+    : typeof amount === 'number'
+      ? amount
+      : 0;
 
   if (isNaN(numAmount)) return '$ 0,00';
 
@@ -28,7 +26,7 @@ export function formatARS(amount: number | Decimal | string | null | undefined):
  * Formato: 15.000,00
  */
 export function formatARSNoSymbol(
-  amount: number | Decimal | string | null | undefined
+  amount: number | string | null | undefined
 ): string {
   const formatted = formatARS(amount);
   return formatted.replace('$', '').trim();
@@ -159,14 +157,14 @@ export function formatDimensions(
 /**
  * Formatea peso en gramos o kilogramos
  */
-export function formatWeight(weight: number | Decimal | string | null | undefined): string {
+export function formatWeight(weight: number | string | null | undefined): string {
   if (weight === null || weight === undefined) return '';
 
   const numWeight = typeof weight === 'string'
     ? parseFloat(weight)
-    : weight instanceof Decimal
-      ? weight.toNumber()
-      : weight;
+    : typeof weight === 'number'
+      ? weight
+      : 0;
 
   if (isNaN(numWeight)) return '';
 
@@ -196,12 +194,12 @@ export function formatFileSize(bytes: number | string): string {
 /**
  * Formatea porcentaje
  */
-export function formatPercentage(value: number | Decimal | string): string {
+export function formatPercentage(value: number | string): string {
   const numValue = typeof value === 'string'
     ? parseFloat(value)
-    : value instanceof Decimal
-      ? value.toNumber()
-      : value;
+    : typeof value === 'number'
+      ? value
+      : 0;
 
   if (isNaN(numValue)) return '0%';
 
@@ -224,12 +222,12 @@ export function abbreviateNumber(num: number): string {
 /**
  * Formatea rating con estrellas
  */
-export function formatRating(rating: number | Decimal | string): string {
+export function formatRating(rating: number | string): string {
   const numRating = typeof rating === 'string'
     ? parseFloat(rating)
-    : rating instanceof Decimal
-      ? rating.toNumber()
-      : rating;
+    : typeof rating === 'number'
+      ? rating
+      : 0;
 
   if (isNaN(numRating)) return '0.0';
 

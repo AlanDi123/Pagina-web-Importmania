@@ -82,7 +82,7 @@ async function main() {
     },
   });
 
-  const hogar = await prisma.category.create({
+  await prisma.category.create({
     data: {
       name: 'Hogar',
       slug: 'hogar',
@@ -429,13 +429,13 @@ async function main() {
     { key: 'referral_discount_for_referred', value: true },
   ];
 
-  for (const config of storeConfigs) {
-    await prisma.storeConfig.upsert({
-      where: { key: config.key },
-      update: { value: config.value as object },
-      create: config as { key: string; value: object },
-    });
-  }
+  await prisma.storeConfig.createMany({
+    data: storeConfigs.map(config => ({
+      key: config.key,
+      value: config.value as unknown as object,
+    })),
+    skipDuplicates: true,
+  });
 
   console.log(`✅ Configuración de tienda creada`);
 

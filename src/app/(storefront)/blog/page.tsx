@@ -16,14 +16,13 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const [posts, storeConfig] = await Promise.all([
-    prisma.blogPost.findMany({
-      where: { isPublished: true },
-      orderBy: { publishedAt: 'desc' },
-      take: 20,
-    }),
-    prisma.storeConfig.findMany(),
-  ]);
+  const posts = await prisma.blogPost.findMany({
+    where: { isPublished: true },
+    orderBy: { publishedAt: 'desc' },
+    take: 20,
+  });
+
+  const storeConfig = await prisma.storeConfig.findMany();
 
   const config = Object.fromEntries(storeConfig.map((c) => [c.key, c.value]));
 

@@ -32,19 +32,19 @@ export default async function BuscarPage({ searchParams }: BuscarPageProps) {
       }
     : { isActive: true };
 
-  const [products, total, storeConfig] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        images: { where: { isMain: true }, take: 1 },
-      },
-      orderBy: { salesCount: 'desc' },
-    }),
-    prisma.product.count({ where }),
-    prisma.storeConfig.findMany(),
-  ]);
+  const products = await prisma.product.findMany({
+    where,
+    skip: (page - 1) * limit,
+    take: limit,
+    include: {
+      images: { where: { isMain: true }, take: 1 },
+    },
+    orderBy: { salesCount: 'desc' },
+  });
+
+  const total = await prisma.product.count({ where });
+
+  const storeConfig = await prisma.storeConfig.findMany();
 
   const config = Object.fromEntries(storeConfig.map((c) => [c.key, c.value]));
 

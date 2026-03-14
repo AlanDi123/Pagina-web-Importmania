@@ -23,25 +23,24 @@ export async function GET(request: NextRequest) {
       ],
     };
 
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          images: {
-            where: { isMain: true },
-            take: 1,
-          },
-          categories: {
-            include: { category: { select: { name: true } } },
-            take: 1,
-          },
+    const products = await prisma.product.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        images: {
+          where: { isMain: true },
+          take: 1,
         },
-        orderBy: { salesCount: 'desc' },
-      }),
-      prisma.product.count({ where }),
-    ]);
+        categories: {
+          include: { category: { select: { name: true } } },
+          take: 1,
+        },
+      },
+      orderBy: { salesCount: 'desc' },
+    });
+
+    const total = await prisma.product.count({ where });
 
     const transformedProducts = products.map((p) => ({
       id: p.id,

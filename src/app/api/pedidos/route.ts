@@ -203,32 +203,31 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    const [orders, total] = await Promise.all([
-      prisma.order.findMany({
-        where: { userId: session.user.id },
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          items: {
-            take: 1,
-            select: {
-              product: {
-                select: {
-                  images: {
-                    where: { isMain: true },
-                    take: 1,
-                  },
+    const orders = await prisma.order.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        items: {
+          take: 1,
+          select: {
+            product: {
+              select: {
+                images: {
+                  where: { isMain: true },
+                  take: 1,
                 },
               },
             },
           },
         },
-      }),
-      prisma.order.count({
-        where: { userId: session.user.id },
-      }),
-    ]);
+      },
+    });
+
+    const total = await prisma.order.count({
+      where: { userId: session.user.id },
+    });
 
     return NextResponse.json({
       orders,
