@@ -73,14 +73,6 @@ export default async function PedidoDetallePage({ params }: PedidoDetallePagePro
     redirect('/cuenta/pedidos');
   }
 
-  const shippingMethodLabels: Record<string, string> = {
-    HOME_DELIVERY: 'Envío a domicilio',
-    ANDREANI: 'Andreani',
-    OCA: 'OCA',
-    CORREO_ARGENTINO: 'Correo Argentino',
-    PICKUP: 'Retiro en persona',
-  };
-
   const paymentMethodLabels: Record<string, string> = {
     MERCADOPAGO: 'MercadoPago',
     TRANSFER: 'Transferencia bancaria',
