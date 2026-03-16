@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import { APP_URL } from '@/lib/constants';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { PromoBar } from '@/components/storefront/PromoBar';
@@ -128,16 +129,14 @@ export default async function ProductoPage({ params }: ProductoPageProps) {
   const structuredData = generateProductStructuredData({
     id: product.id,
     name: product.name,
-    slug: product.slug,
-    price: product.price.toNumber(),
-    compareAtPrice: product.compareAtPrice?.toNumber() || null,
-    image: images[0]?.url || '',
     description: product.shortDescription || '',
+    price: product.price.toNumber(),
+    image: images[0]?.url || '',
     rating: product.averageRating.toNumber(),
     reviewCount: product.reviewCount,
     sku: product.sku,
     brand: 'iMPORTMANIA',
-    inStock: product.stock > 0,
+    url: `${APP_URL}/productos/${product.slug}`,
   });
 
   return (
