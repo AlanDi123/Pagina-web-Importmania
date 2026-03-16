@@ -32,6 +32,7 @@ export async function generateMetadata({ params }: CategoriaPageProps): Promise<
 }
 
 export default async function CategoriaPage({ params }: CategoriaPageProps) {
+  // Obtener categoría con children (sin products)
   const category = await prisma.category.findUnique({
     where: { slug: params.slug },
     include: {
@@ -39,23 +40,33 @@ export default async function CategoriaPage({ params }: CategoriaPageProps) {
         where: { isActive: true },
         orderBy: { sortOrder: 'asc' },
       },
-      products: {
-        where: { isActive: true },
-        include: {
-          images: { where: { isMain: true }, take: 1 },
-        },
-        orderBy: { salesCount: 'desc' },
-        take: 24,
-      },
     },
   });
 
+  // Verificar si la categoría existe y está activa
   if (!category || !category.isActive) {
     notFound();
   }
 
+  // Obtener productos de esta categoría (consulta separada)
+  const categoryProducts = await prisma.product.findMany({
+    where: {
+      isActive: true,
+      categories: {
+        some: {
+          categoryId: category.id,
+        },
+      },
+    },
+    include: {
+      images: { where: { isMain: true }, take: 1 },
+    },
+    orderBy: { salesCount: 'desc' },
+    take: 24,
+  });
+
   // Transformar productos
-  const products = category.products.map((p) => ({
+  const products = categoryProducts.map((p) => ({
     id: p.id,
     name: p.name,
     slug: p.slug,
@@ -108,7 +119,7 @@ export default async function CategoriaPage({ params }: CategoriaPageProps) {
             <div className="flex items-center gap-4 mb-4">
               <h1 className="text-3xl font-bold">{category.name}</h1>
               <Badge variant="secondary">
-                {category.products.length} productos
+                {categoryProducts.length} productos
               </Badge>
             </div>
             {category.description && (
