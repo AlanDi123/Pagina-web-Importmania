@@ -257,13 +257,13 @@ export default async function PedidoDetallePage({ params }: PedidoDetallePagePro
                     <span>Subtotal</span>
                     <span>{formatARS(order.subtotal.toNumber())}</span>
                   </div>
-                  {order.discount > 0 && (
+                  {order.discount.toNumber() > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Descuento</span>
                       <span>-{formatARS(order.discount.toNumber())}</span>
                     </div>
                   )}
-                  {order.shippingCost > 0 && (
+                  {order.shippingCost.toNumber() > 0 && (
                     <div className="flex justify-between">
                       <span>Envío</span>
                       <span>{formatARS(order.shippingCost.toNumber())}</span>
