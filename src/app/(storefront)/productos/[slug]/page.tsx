@@ -237,7 +237,16 @@ export default async function ProductoPage({ params }: ProductoPageProps) {
                   stock={product.stock}
                   size="lg"
                 />
-                <WishlistButton productId={product.id} />
+                <WishlistButton 
+                  productId={product.id}
+                  productName={product.name}
+                  productSlug={product.slug}
+                  productPrice={product.price.toNumber()}
+                  productCompareAtPrice={product.compareAtPrice?.toNumber() || null}
+                  productImage={images.find(img => img.isMain)?.url || images[0]?.url || null}
+                  productStock={product.stock}
+                  productRating={product.averageRating.toNumber()}
+                />
               </div>
 
               {/* Envío */}
