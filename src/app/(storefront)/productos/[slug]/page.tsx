@@ -124,8 +124,6 @@ export default async function ProductoPage({ params }: ProductoPageProps) {
   const storeConfig = await prisma.storeConfig.findMany();
   const config = Object.fromEntries(storeConfig.map((c) => [c.key, c.value]));
 
-  const categorySlugs = categories.map((c) => c.slug);
-
   // Structured data
   const structuredData = generateProductStructuredData({
     id: product.id,
