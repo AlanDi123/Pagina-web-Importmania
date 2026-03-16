@@ -2,6 +2,8 @@ import NextAuth, { type NextAuthOptions, type Session } from 'next-auth';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
+import DiscordProvider from 'next-auth/providers/discord';
+import EmailProvider from 'next-auth/providers/email';
 import { prisma } from '@/lib/prisma';
 import { compare } from 'bcryptjs';
 import { z } from 'zod';
@@ -90,6 +92,103 @@ export const authOptions: NextAuthOptions = {
         },
       },
     }),
+
+    // Discord OAuth
+    DiscordProvider({
+      clientId: process.env.DISCORD_CLIENT_ID || '',
+      clientSecret: process.env.DISCORD_CLIENT_SECRET || '',
+      authorization: {
+        params: {
+          scope: 'identify email',
+        },
+      },
+    }),
+
+    // Magic Links (Email sin contraseña)
+    EmailProvider({
+      server: process.env.EMAIL_SERVER || '',
+      from: process.env.EMAIL_FROM || 'iMPORTMANIA <noreply@importmania.com.ar>',
+      maxAge: 24 * 60 * 60, // 24 horas
+      async generateVerificationToken() {
+        // Generar token de 6 dígitos
+        return Math.floor(100000 + Math.random() * 900000).toString();
+      },
+      async sendVerificationRequest({ identifier: email, url, token, provider }) {
+        const { host } = new URL(url);
+        
+        // Intentar enviar email con nodemailer
+        try {
+          const nodemailer = await import('nodemailer');
+          
+          const transporter = nodemailer.default.createTransport(provider.server);
+          
+          await transporter.sendMail({
+            to: email,
+            subject: `Tu código de acceso a ${host}`,
+            html: `
+              <!DOCTYPE html>
+              <html>
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1">
+                  <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { text-align: center; padding: 30px 0; background: linear-gradient(135deg, #00BFFF 0%, #2ECC71 100%); color: white; border-radius: 8px 8px 0 0; }
+                    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+                    .token { font-size: 32px; font-weight: bold; letter-spacing: 8px; text-align: center; padding: 20px; background: white; border: 2px dashed #00BFFF; border-radius: 8px; margin: 20px 0; }
+                    .button { display: inline-block; padding: 14px 32px; background: #00BFFF; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 20px 0; }
+                    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                  </style>
+                </head>
+                <body>
+                  <div class="container">
+                    <div class="header">
+                      <h1 style="margin: 0; font-size: 28px;">🔐 Tu código de acceso</h1>
+                      <p style="margin: 10px 0 0 0; opacity: 0.9;">iMPORTMANIA</p>
+                    </div>
+                    <div class="content">
+                      <p style="font-size: 16px;">Hola,</p>
+                      <p>Alguien solicitó un código de acceso para iniciar sesión en <strong>${host}</strong>.</p>
+                      <p>Usá este código para ingresar:</p>
+                      <div class="token">${token}</div>
+                      <p style="text-align: center;">O hacé click en el botón de abajo:</p>
+                      <p style="text-align: center;">
+                        <a href="${url}" class="button">Iniciar sesión automáticamente</a>
+                      </p>
+                      <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                        ⚠️ Este código expira en 24 horas. Si no solicitaste este código, podés ignorar este email.
+                      </p>
+                    </div>
+                    <div class="footer">
+                      <p>© ${new Date().getFullYear()} iMPORTMANIA. Todos los derechos reservados.</p>
+                      <p>¿Tenés dudas? Respondé este email.</p>
+                    </div>
+                  </div>
+                </body>
+              </html>
+            `,
+            text: `
+Tu código de acceso a ${host}: ${token}
+
+Ingresá este código en la página de inicio de sesión.
+
+O hacé click en este link para ingresar automáticamente: ${url}
+
+Este código expira en 24 horas.
+
+Si no solicitaste este código, podés ignorar este email.
+
+---
+© ${new Date().getFullYear()} iMPORTMANIA
+            `.trim(),
+          });
+        } catch (error) {
+          console.error('Error al enviar email de verificación:', error);
+          throw new Error('Error al enviar el código de verificación');
+        }
+      },
+    }),
   ],
 
   session: {
@@ -134,9 +233,9 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
-    async signIn({ user, account }) {
-      // OAuth sign in
-      if (account?.provider === 'google') {
+    async signIn({ user, account, profile }) {
+      // OAuth sign in (Google, Discord)
+      if (account?.provider === 'google' || account?.provider === 'discord') {
         // Verificar si el usuario ya existe por email
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email || '' },
@@ -159,7 +258,7 @@ export const authOptions: NextAuthOptions = {
           return true;
         }
 
-        // Crear nuevo usuario desde Google OAuth
+        // Crear nuevo usuario desde OAuth
         await prisma.user.create({
           data: {
             email: user.email || '',
@@ -181,6 +280,42 @@ export const authOptions: NextAuthOptions = {
                 id_token: account.id_token,
               },
             },
+          },
+        });
+
+        return true;
+      }
+
+      // Email/ Magic Link sign in
+      if (account?.provider === 'email') {
+        // Verificar si el usuario ya existe por email
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email || '' },
+        });
+
+        if (existingUser) {
+          // Verificar si está activo
+          if (!existingUser.isActive) {
+            return false;
+          }
+
+          // Actualizar emailVerified
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: { emailVerified: new Date() },
+          });
+
+          return true;
+        }
+
+        // Crear nuevo usuario desde Magic Link
+        await prisma.user.create({
+          data: {
+            email: user.email || '',
+            name: user.name || user.email?.split('@')[0] || 'Usuario',
+            role: 'CUSTOMER',
+            isActive: true,
+            emailVerified: new Date(),
           },
         });
 
