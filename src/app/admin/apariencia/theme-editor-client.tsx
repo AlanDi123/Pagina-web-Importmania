@@ -255,6 +255,7 @@ export function ThemeEditorClient({
                                       : 'border-transparent hover:border-muted-foreground'
                                   }`}
                                 >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
                                     src={media.fileUrl}
                                     alt={media.altText || media.fileName}
@@ -288,6 +289,7 @@ export function ThemeEditorClient({
                     </div>
                     {watchedValues.logoUrl && (
                       <div className="mt-2 p-2 border rounded-md bg-muted/50">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={watchedValues.logoUrl}
                           alt="Logo preview"
@@ -496,6 +498,7 @@ export function ThemeEditorClient({
               >
                 <div className="flex items-center justify-between">
                   {watchedValues.logoUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={watchedValues.logoUrl}
                       alt="Logo"

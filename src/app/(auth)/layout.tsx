@@ -52,6 +52,7 @@ export default function AuthLayout({
             <div className="hidden lg:relative lg:flex lg:flex-col lg:items-center lg:justify-center bg-zinc-900">
               {/* Imagen de fondo */}
               <div className="absolute inset-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop"
                   alt="Background"

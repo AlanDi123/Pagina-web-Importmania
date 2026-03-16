@@ -186,6 +186,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                 <div key={item.id} className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-md overflow-hidden bg-muted">
                     {item.product.images?.[0]?.url ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
                       <img
                         src={item.product.images[0].url}
                         alt={item.productName}

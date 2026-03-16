@@ -63,6 +63,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
       {review.productImages && review.productImages.length > 0 && (
         <div className="flex gap-2">
           {review.productImages.slice(0, 4).map((img, index) => (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               key={index}
               src={img}
