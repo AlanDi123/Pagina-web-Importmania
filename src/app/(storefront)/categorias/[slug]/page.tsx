@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import Link from 'next/link';
 import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { PromoBar } from '@/components/storefront/PromoBar';
@@ -135,14 +136,14 @@ export default async function CategoriaPage({ params }: CategoriaPageProps) {
               <h2 className="text-lg font-semibold mb-4">Subcategorías</h2>
               <div className="flex flex-wrap gap-2">
                 {category.children.map((child) => (
-                  <Badge
-                    key={child.id}
-                    variant="outline"
-                    className="text-sm px-4 py-2 cursor-pointer hover:bg-muted"
-                    asChild
-                  >
-                    <a href={`/categorias/${child.slug}`}>{child.name}</a>
-                  </Badge>
+                  <Link key={child.id} href={`/categorias/${child.slug}`}>
+                    <Badge
+                      variant="outline"
+                      className="text-sm px-4 py-2 cursor-pointer hover:bg-muted"
+                    >
+                      {child.name}
+                    </Badge>
+                  </Link>
                 ))}
               </div>
             </div>
