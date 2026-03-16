@@ -112,7 +112,7 @@ export default async function PedidosPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium">
-                        {formatARS(order.total)}
+                        {formatARS(order.total.toNumber())}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" asChild>
