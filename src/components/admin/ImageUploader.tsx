@@ -31,7 +31,7 @@ export function ImageUploader({
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
-  const handleUpload = async (files: FileList | null) => {
+  const handleUpload = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
@@ -78,7 +78,7 @@ export function ImageUploader({
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [images, onChange, bucket]);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();

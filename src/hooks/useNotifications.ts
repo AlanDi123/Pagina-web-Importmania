@@ -4,6 +4,23 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 /**
+ * Mapeo de tipos de notificación a labels e íconos
+ * Declarado fuera del hook para evitar recreaciones
+ */
+const typeMapping: Record<string, { label: string; icon: string; color: string }> = {
+  NEW_ORDER: { label: 'Nuevo pedido', icon: '📦', color: 'text-blue-500' },
+  PAYMENT_RECEIVED: { label: 'Pago recibido', icon: '💰', color: 'text-green-500' },
+  ORDER_SHIPPED: { label: 'Pedido enviado', icon: '🚚', color: 'text-indigo-500' },
+  ORDER_DELIVERED: { label: 'Pedido entregado', icon: '✅', color: 'text-emerald-500' },
+  LOW_STOCK: { label: 'Stock bajo', icon: '⚠️', color: 'text-yellow-500' },
+  NEW_REVIEW: { label: 'Nueva reseña', icon: '⭐', color: 'text-amber-500' },
+  NEW_USER: { label: 'Nuevo usuario', icon: '👤', color: 'text-purple-500' },
+  ABANDONED_CART: { label: 'Carrito abandonado', icon: '🛒', color: 'text-orange-500' },
+  REFERRAL_COMPLETED: { label: 'Referido completado', icon: '🎁', color: 'text-pink-500' },
+  SYSTEM: { label: 'Sistema', icon: 'ℹ️', color: 'text-gray-500' },
+};
+
+/**
  * Tipo de notificación
  */
 export interface Notification {
@@ -52,28 +69,12 @@ interface UseNotificationsReturn {
  */
 export function useNotifications(): UseNotificationsReturn {
   const { isAuthenticated, user } = useAuth();
-  
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-
-  /**
-   * Mapeo de tipos de notificación a labels e íconos
-   */
-  const typeMapping: Record<string, { label: string; icon: string; color: string }> = {
-    NEW_ORDER: { label: 'Nuevo pedido', icon: '📦', color: 'text-blue-500' },
-    PAYMENT_RECEIVED: { label: 'Pago recibido', icon: '💰', color: 'text-green-500' },
-    ORDER_SHIPPED: { label: 'Pedido enviado', icon: '🚚', color: 'text-indigo-500' },
-    ORDER_DELIVERED: { label: 'Pedido entregado', icon: '✅', color: 'text-emerald-500' },
-    LOW_STOCK: { label: 'Stock bajo', icon: '⚠️', color: 'text-yellow-500' },
-    NEW_REVIEW: { label: 'Nueva reseña', icon: '⭐', color: 'text-amber-500' },
-    NEW_USER: { label: 'Nuevo usuario', icon: '👤', color: 'text-purple-500' },
-    ABANDONED_CART: { label: 'Carrito abandonado', icon: '🛒', color: 'text-orange-500' },
-    REFERRAL_COMPLETED: { label: 'Referido completado', icon: '🎁', color: 'text-pink-500' },
-    SYSTEM: { label: 'Sistema', icon: 'ℹ️', color: 'text-gray-500' },
-  };
 
   /**
    * Formatear tiempo relativo
