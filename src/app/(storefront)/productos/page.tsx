@@ -3,11 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { Footer } from '@/components/storefront/Footer';
 import { PromoBar } from '@/components/storefront/PromoBar';
 import { ProductGrid } from '@/components/storefront/ProductGrid';
-import { FilterSidebar } from '@/components/storefront/FilterSidebar';
-import { SortDropdown } from '@/components/storefront/SortDropdown';
 import { Pagination } from '@/components/ui/pagination';
 import { ProductFilters, ProductSort } from '@/types/product';
-import { formatARS } from '@/lib/formatters';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -132,12 +129,6 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
     orderBy: { sortOrder: 'asc' },
   });
 
-  const priceRange = await prisma.product.aggregate({
-    where: { isActive: true },
-    _min: { price: true },
-    _max: { price: true },
-  });
-
   // Transformar productos
   const transformedProducts = products.map((p) => ({
     id: p.id,
@@ -166,24 +157,6 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
     name: c.name,
     slug: c.slug,
     count: c._count.products,
-  }));
-
-  // Tags disponibles
-  const allTags = await prisma.product.groupBy({
-    by: ['tags'],
-    where: { isActive: true },
-  });
-
-  const tagCounts: Record<string, number> = {};
-  allTags.forEach((p) => {
-    p.tags.forEach((tag) => {
-      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-    });
-  });
-
-  const filterTags = Object.entries(tagCounts).map(([name, count]) => ({
-    name,
-    count,
   }));
 
   const totalPages = Math.ceil(total / limit);
