@@ -2,7 +2,6 @@ import NextAuth, { type NextAuthOptions, type Session } from 'next-auth';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
-import FacebookProvider from 'next-auth/providers/facebook';
 import { prisma } from '@/lib/prisma';
 import { compare } from 'bcryptjs';
 import { z } from 'zod';
@@ -91,17 +90,6 @@ export const authOptions: NextAuthOptions = {
         },
       },
     }),
-
-    // Facebook OAuth
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_CLIENT_ID || '',
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET || '',
-      authorization: {
-        params: {
-          scope: 'email,public_profile',
-        },
-      },
-    }),
   ],
 
   session: {
@@ -148,7 +136,7 @@ export const authOptions: NextAuthOptions = {
 
     async signIn({ user, account }) {
       // OAuth sign in
-      if (account?.provider === 'google' || account?.provider === 'facebook') {
+      if (account?.provider === 'google') {
         // Verificar si el usuario ya existe por email
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email || '' },
@@ -171,7 +159,7 @@ export const authOptions: NextAuthOptions = {
           return true;
         }
 
-        // Crear nuevo usuario desde OAuth
+        // Crear nuevo usuario desde Google OAuth
         await prisma.user.create({
           data: {
             email: user.email || '',
