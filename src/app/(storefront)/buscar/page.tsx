@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { Footer } from '@/components/storefront/Footer';
 import { PromoBar } from '@/components/storefront/PromoBar';
 import { ProductGrid } from '@/components/storefront/ProductGrid';
@@ -19,13 +20,13 @@ export default async function BuscarPage({ searchParams }: BuscarPageProps) {
   const page = parseInt(searchParams.page || '1');
   const limit = 12;
 
-  const where = q
+  const where: Prisma.ProductWhereInput = q
     ? {
         isActive: true,
         OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { description: { contains: q, mode: 'insensitive' } },
-          { shortDescription: { contains: q, mode: 'insensitive' } },
+          { name: { contains: q, mode: 'insensitive' as const } },
+          { description: { contains: q, mode: 'insensitive' as const } },
+          { shortDescription: { contains: q, mode: 'insensitive' as const } },
           { tags: { has: q } },
         ],
       }
