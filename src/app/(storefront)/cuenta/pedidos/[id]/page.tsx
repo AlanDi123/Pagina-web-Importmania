@@ -55,6 +55,7 @@ export default async function PedidoDetallePage({ params }: PedidoDetallePagePro
             select: {
               id: true,
               name: true,
+              slug: true,
               images: { where: { isMain: true }, take: 1 },
             },
           },
