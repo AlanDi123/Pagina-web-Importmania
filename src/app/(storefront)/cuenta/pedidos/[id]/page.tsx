@@ -182,10 +182,10 @@ export default async function PedidoDetallePage({ params }: PedidoDetallePagePro
                         <p className="text-sm text-muted-foreground">{item.variantName}</p>
                       )}
                       <p className="text-sm text-muted-foreground">
-                        {item.quantity} x {formatARS(item.price)}
+                        {item.quantity} x {formatARS(item.price.toNumber())}
                       </p>
                     </div>
-                    <p className="font-semibold">{formatARS(item.subtotal)}</p>
+                    <p className="font-semibold">{formatARS(item.subtotal.toNumber())}</p>
                   </div>
                 ))}
               </CardContent>
@@ -255,24 +255,24 @@ export default async function PedidoDetallePage({ params }: PedidoDetallePagePro
                 <div className="space-y-2 max-w-md ml-auto">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>{formatARS(order.subtotal)}</span>
+                    <span>{formatARS(order.subtotal.toNumber())}</span>
                   </div>
                   {order.discount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Descuento</span>
-                      <span>-{formatARS(order.discount)}</span>
+                      <span>-{formatARS(order.discount.toNumber())}</span>
                     </div>
                   )}
                   {order.shippingCost > 0 && (
                     <div className="flex justify-between">
                       <span>Envío</span>
-                      <span>{formatARS(order.shippingCost)}</span>
+                      <span>{formatARS(order.shippingCost.toNumber())}</span>
                     </div>
                   )}
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span className="text-brand-primary">{formatARS(order.total)}</span>
+                    <span className="text-brand-primary">{formatARS(order.total.toNumber())}</span>
                   </div>
                 </div>
               </CardContent>
