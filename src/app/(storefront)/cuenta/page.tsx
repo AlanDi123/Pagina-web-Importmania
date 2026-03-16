@@ -34,7 +34,7 @@ export default async function CuentaPage() {
       _count: {
         select: {
           orders: true,
-          wishlistItems: true,
+          wishlist: true,
         },
       },
     },

@@ -4,6 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import DiscordProvider from 'next-auth/providers/discord';
 import EmailProvider from 'next-auth/providers/email';
+import { Resend } from 'resend';
 import { prisma } from '@/lib/prisma';
 import { compare } from 'bcryptjs';
 import { z } from 'zod';
@@ -104,27 +105,25 @@ export const authOptions: NextAuthOptions = {
       },
     }),
 
-    // Magic Links (Email sin contraseña)
+    // Magic Links (Email sin contraseña) - Usando Resend API
     EmailProvider({
-      server: process.env.EMAIL_SERVER || '',
-      from: process.env.EMAIL_FROM || 'iMPORTMANIA <noreply@importmania.com.ar>',
+      // Resend API se configura directamente, no necesita server SMTP
       maxAge: 24 * 60 * 60, // 24 horas
       async generateVerificationToken() {
         // Generar token de 6 dígitos
         return Math.floor(100000 + Math.random() * 900000).toString();
       },
-      async sendVerificationRequest({ identifier: email, url, token, provider }) {
+      async sendVerificationRequest({ identifier: email, url, token }) {
         const { host } = new URL(url);
         
-        // Intentar enviar email con nodemailer
+        // Inicializar Resend
+        const resend = new Resend(process.env.RESEND_API_KEY || '');
+        
         try {
-          const nodemailer = await import('nodemailer');
-          
-          const transporter = nodemailer.default.createTransport(provider.server);
-          
-          await transporter.sendMail({
+          await resend.emails.send({
+            from: process.env.EMAIL_FROM || 'iMPORTMANIA <onboarding@resend.dev>',
             to: email,
-            subject: `Tu código de acceso a ${host}`,
+            subject: `Iniciá sesión en ${host}`,
             html: `
               <!DOCTYPE html>
               <html>
@@ -132,37 +131,45 @@ export const authOptions: NextAuthOptions = {
                   <meta charset="utf-8">
                   <meta name="viewport" content="width=device-width, initial-scale=1">
                   <style>
-                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
                     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { text-align: center; padding: 30px 0; background: linear-gradient(135deg, #00BFFF 0%, #2ECC71 100%); color: white; border-radius: 8px 8px 0 0; }
-                    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-                    .token { font-size: 32px; font-weight: bold; letter-spacing: 8px; text-align: center; padding: 20px; background: white; border: 2px dashed #00BFFF; border-radius: 8px; margin: 20px 0; }
-                    .button { display: inline-block; padding: 14px 32px; background: #00BFFF; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 20px 0; }
-                    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                    .header { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #00BFFF 0%, #2ECC71 100%); color: white; }
+                    .button { display: inline-block; padding: 16px 40px; background: #00BFFF; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 20px 0; }
+                    .token { font-size: 36px; font-weight: bold; letter-spacing: 10px; text-align: center; padding: 20px; background: #f5f5f5; border-radius: 8px; margin: 20px 0; font-family: monospace; }
+                    .content { background: #ffffff; padding: 40px 30px; }
+                    .footer { text-align: center; padding: 30px; color: #999; font-size: 12px; background: #f9f9f9; }
+                    .divider { border-top: 1px solid #eeeeee; margin: 20px 0; }
                   </style>
                 </head>
                 <body>
                   <div class="container">
                     <div class="header">
-                      <h1 style="margin: 0; font-size: 28px;">🔐 Tu código de acceso</h1>
-                      <p style="margin: 10px 0 0 0; opacity: 0.9;">iMPORTMANIA</p>
+                      <h1 style="margin: 0; font-size: 32px;">🔐 Tu código de acceso</h1>
+                      <p style="margin: 10px 0 0 0; opacity: 0.95; font-size: 16px;">iMPORTMANIA</p>
                     </div>
                     <div class="content">
-                      <p style="font-size: 16px;">Hola,</p>
-                      <p>Alguien solicitó un código de acceso para iniciar sesión en <strong>${host}</strong>.</p>
-                      <p>Usá este código para ingresar:</p>
-                      <div class="token">${token}</div>
-                      <p style="text-align: center;">O hacé click en el botón de abajo:</p>
-                      <p style="text-align: center;">
-                        <a href="${url}" class="button">Iniciar sesión automáticamente</a>
+                      <p style="font-size: 16px; margin-bottom: 20px;">Hola,</p>
+                      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                        Alguien solicitó un código de acceso para iniciar sesión en <strong>${host}</strong>.
                       </p>
-                      <p style="font-size: 14px; color: #666; margin-top: 30px;">
-                        ⚠️ Este código expira en 24 horas. Si no solicitaste este código, podés ignorar este email.
+                      
+                      <p style="font-size: 14px; color: #666; margin-bottom: 10px;">Usá este código para ingresar:</p>
+                      <div class="token">${token}</div>
+                      
+                      <div class="divider"></div>
+                      
+                      <p style="text-align: center; margin: 30px 0;">
+                        <a href="${url}" class="button">Iniciar sesión automáticamente →</a>
+                      </p>
+                      
+                      <p style="font-size: 14px; color: #999; margin-top: 30px; line-height: 1.6;">
+                        ⚠️ Este código expira en 24 horas.<br>
+                        Si no solicitaste este código, podés ignorar este email de forma segura.
                       </p>
                     </div>
                     <div class="footer">
-                      <p>© ${new Date().getFullYear()} iMPORTMANIA. Todos los derechos reservados.</p>
-                      <p>¿Tenés dudas? Respondé este email.</p>
+                      <p style="margin: 0 0 10px 0;">© ${new Date().getFullYear()} iMPORTMANIA. Todos los derechos reservados.</p>
+                      <p style="margin: 0;">¿Tenés dudas? Respondé este email.</p>
                     </div>
                   </div>
                 </body>
@@ -171,21 +178,23 @@ export const authOptions: NextAuthOptions = {
             text: `
 Tu código de acceso a ${host}: ${token}
 
-Ingresá este código en la página de inicio de sesión.
+Ingresá este código en la página de inicio de sesión o hacé click en este link para ingresar automáticamente:
 
-O hacé click en este link para ingresar automáticamente: ${url}
+${url}
 
 Este código expira en 24 horas.
 
-Si no solicitaste este código, podés ignorar este email.
+Si no solicitaste este código, podés ignorar este email de forma segura.
 
 ---
 © ${new Date().getFullYear()} iMPORTMANIA
             `.trim(),
           });
+          
+          console.log('✅ Email enviado exitosamente a:', email);
         } catch (error) {
-          console.error('Error al enviar email de verificación:', error);
-          throw new Error('Error al enviar el código de verificación');
+          console.error('❌ Error al enviar email con Resend:', error);
+          throw new Error('Error al enviar el código de verificación. Por favor intentá de nuevo.');
         }
       },
     }),
