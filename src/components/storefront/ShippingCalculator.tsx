@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { ShippingQuote } from '@/types/shipping';
 import { formatARS } from '@/lib/formatters';
 import { cn } from '@/lib/utils';

@@ -225,7 +225,7 @@ export function useNotifications(): UseNotificationsReturn {
    */
   const clearAll = useCallback(async () => {
     try {
-      const response = await fetch('/api/notificaciones/clear-all', {
+      const response = await fetch('/api/notificaciones/read-all', {
         method: 'DELETE',
       });
 

@@ -81,6 +81,7 @@ export function NewsletterForm({
           placeholder={placeholder}
           className="flex-1"
           disabled={isLoading}
+          autoComplete="email"
         />
         <Button
           type="submit"

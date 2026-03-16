@@ -33,6 +33,5 @@ export const config = {
   matcher: [
     '/admin/:path*',
     '/cuenta/:path*',
-    '/checkout/:path*',
   ],
 };

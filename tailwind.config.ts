@@ -11,10 +11,10 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Colores de marca iMPORTMANIA
+        // Colores de marca iMPORTMANIA - ahora con variables CSS dinámicas del Theme
         brand: {
-          primary: '#00BFFF',    // Celeste - color principal
-          secondary: '#2ECC71',  // Verde - stock, éxito
+          primary: 'var(--primary-color, #00BFFF)',    // Celeste - configurable desde Theme
+          secondary: 'var(--secondary-color, #2ECC71)', // Verde - configurable desde Theme
           accent: '#FF8C00',     // Naranja - ofertas, CTAs
         },
         // shadcn/ui colors - usando variables CSS
@@ -24,11 +24,11 @@ const config: Config = {
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
+          DEFAULT: 'var(--primary-color, hsl(var(--primary)))',
           foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
+          DEFAULT: 'var(--secondary-color, hsl(var(--secondary)))',
           foreground: 'hsl(var(--secondary-foreground))',
         },
         destructive: {
@@ -53,7 +53,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--theme-font-family, Inter)', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       keyframes: {

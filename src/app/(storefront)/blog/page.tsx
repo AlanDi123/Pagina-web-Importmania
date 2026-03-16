@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
-import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { PromoBar } from '@/components/storefront/PromoBar';
 import { Breadcrumbs } from '@/components/storefront/Breadcrumbs';
@@ -33,7 +32,6 @@ export default async function BlogPage() {
         enabled={(config.promoBarEnabled as boolean) || true}
       />
 
-      <Header logo={config.logo as string} categories={[]} />
 
       <main className="py-8">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

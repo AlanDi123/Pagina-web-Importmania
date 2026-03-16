@@ -231,6 +231,12 @@ export default async function ProductoPage({ params }: ProductoPageProps) {
               <div className="space-y-4">
                 <AddToCartButton
                   productId={product.id}
+                  name={product.name}
+                  slug={product.slug}
+                  sku={product.sku}
+                  price={product.price.toNumber()}
+                  compareAtPrice={product.compareAtPrice?.toNumber() || null}
+                  mainImage={product.images.find(img => img.isMain)?.url || null}
                   stock={product.stock}
                   size="lg"
                 />

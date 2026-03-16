@@ -1,7 +1,7 @@
 'use client';
 
 import { Moon, Sun } from 'lucide-react';
-import { useUI } from '@/stores/uiStore';
+import { useUI } from '@/hooks/useUI';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

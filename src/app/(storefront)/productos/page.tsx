@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
-import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { PromoBar } from '@/components/storefront/PromoBar';
 import { ProductGrid } from '@/components/storefront/ProductGrid';
@@ -198,11 +197,6 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
       <PromoBar
         text={(config.promoBarText as string) || '¡Envío gratis en compras mayores a $50.000!'}
         enabled={(config.promoBarEnabled as boolean) || true}
-      />
-
-      <Header
-        logo={config.logo as string}
-        categories={filterCategories}
       />
 
       <main className="py-8">

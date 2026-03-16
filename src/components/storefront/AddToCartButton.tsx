@@ -14,6 +14,16 @@ interface AddToCartButtonProps {
   stock: number;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  // Datos completos del producto para evitar precio $0
+  name: string;
+  slug: string;
+  sku: string;
+  price: number;
+  compareAtPrice?: number | null;
+  mainImage?: string | null;
+  variantName?: string | null;
+  variantOptions?: Record<string, string> | null;
+  isDigital?: boolean;
 }
 
 export function AddToCartButton({
@@ -24,8 +34,18 @@ export function AddToCartButton({
   stock,
   className,
   size = 'md',
+  // Datos completos del producto
+  name,
+  slug,
+  sku,
+  price,
+  compareAtPrice = null,
+  mainImage = null,
+  variantName = null,
+  variantOptions = null,
+  isDigital = false,
 }: AddToCartButtonProps) {
-  const { addItem } = useCart();
+  const { addProduct } = useCart();
   const [buttonState, setButtonState] = useState<'default' | 'loading' | 'success'>('default');
 
   const isOutOfStock = stock <= 0;
@@ -37,15 +57,21 @@ export function AddToCartButton({
     setButtonState('loading');
 
     try {
-      await addItem({
-        productId,
+      // Usar addProduct con datos completos para evitar precio $0
+      addProduct({
+        id: productId,
         variantId,
         quantity,
-        name: '', // Se completa desde el componente padre
-        slug: '',
-        sku: '',
-        price: 0,
+        name,
+        slug,
+        sku,
+        price,
+        compareAtPrice,
         stock,
+        mainImage,
+        variantName,
+        variantOptions,
+        isDigital,
       });
 
       setButtonState('success');

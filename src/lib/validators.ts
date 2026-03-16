@@ -338,6 +338,170 @@ export const searchSchema = z.object({
 });
 
 /**
+ * Tipos de secciones disponibles para la home
+ */
+export const SECTION_TYPES = {
+  HERO_BANNER: 'HERO_BANNER',
+  FEATURED_PRODUCTS: 'FEATURED_PRODUCTS',
+  NEW_PRODUCTS: 'NEW_PRODUCTS',
+  CATEGORIES: 'CATEGORIES',
+  TEXT_BLOCK: 'TEXT_BLOCK',
+  IMAGE_BANNER: 'IMAGE_BANNER',
+  NEWSLETTER: 'NEWSLETTER',
+} as const;
+
+export type SectionType = (typeof SECTION_TYPES)[keyof typeof SECTION_TYPES];
+
+/**
+ * Schema para las props de HERO_BANNER
+ */
+export const heroBannerPropsSchema = z.object({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  buttonText: z.string().optional(),
+  buttonLink: z.string().optional(),
+  backgroundImage: z.string().url().optional(),
+  overlayColor: z.string().optional(),
+});
+
+/**
+ * Schema para las props de FEATURED_PRODUCTS
+ */
+export const featuredProductsPropsSchema = z.object({
+  title: z.string().default('Productos Destacados'),
+  productsCount: z.number().int().min(1).max(20).default(8),
+  showRating: z.boolean().default(true),
+});
+
+/**
+ * Schema para las props de NEW_PRODUCTS
+ */
+export const newProductsPropsSchema = z.object({
+  title: z.string().default('Nuevos Productos'),
+  productsCount: z.number().int().min(1).max(20).default(8),
+  showRating: z.boolean().default(true),
+});
+
+/**
+ * Schema para las props de CATEGORIES
+ */
+export const categoriesPropsSchema = z.object({
+  title: z.string().default('Categorías'),
+  categoriesCount: z.number().int().min(1).max(12).default(8),
+});
+
+/**
+ * Schema para las props de TEXT_BLOCK
+ */
+export const textBlockPropsSchema = z.object({
+  title: z.string().optional(),
+  content: z.string(),
+  textAlign: z.enum(['left', 'center', 'right']).default('center'),
+  backgroundColor: z.string().optional(),
+});
+
+/**
+ * Schema para las props de IMAGE_BANNER
+ */
+export const imageBannerPropsSchema = z.object({
+  image: z.string().url(),
+  alt: z.string().optional(),
+  link: z.string().url().optional(),
+  height: z.string().default('400px'),
+});
+
+/**
+ * Schema para las props de NEWSLETTER
+ */
+export const newsletterPropsSchema = z.object({
+  title: z.string().default('Suscribite al Newsletter'),
+  description: z.string().optional(),
+});
+
+/**
+ * Schema unificado para las props de cualquier sección
+ */
+export const sectionPropsSchema = z.union([
+  heroBannerPropsSchema,
+  featuredProductsPropsSchema,
+  newProductsPropsSchema,
+  categoriesPropsSchema,
+  textBlockPropsSchema,
+  imageBannerPropsSchema,
+  newsletterPropsSchema,
+]);
+
+/**
+ * Schema para una sección individual de la home
+ */
+export const homeSectionSchema = z.object({
+  id: z.string(),
+  type: z.enum([
+    'HERO_BANNER',
+    'FEATURED_PRODUCTS',
+    'NEW_PRODUCTS',
+    'CATEGORIES',
+    'TEXT_BLOCK',
+    'IMAGE_BANNER',
+    'NEWSLETTER',
+  ]),
+  order: z.number().int().min(0),
+  isVisible: z.boolean().default(true),
+  props: z.record(z.string(), z.unknown()),
+});
+
+export type HomeSection = z.infer<typeof homeSectionSchema>;
+
+/**
+ * Schema para configuración global de Theme (globalSettings)
+ * Requiere al menos: primaryColor, secondaryColor, fontFamily, logoUrl
+ */
+export const themeGlobalSettingsSchema = z.object({
+  primaryColor: z.string().min(1, 'El color primario es requerido'),
+  secondaryColor: z.string().min(1, 'El color secundario es requerido'),
+  fontFamily: z.string().min(1, 'La tipografía es requerida'),
+  logoUrl: z.string().url('Debe ser una URL válida'),
+  faviconUrl: z.string().url().optional(),
+  homeSections: z.array(homeSectionSchema).default([]),
+});
+
+export type ThemeGlobalSettings = z.infer<typeof themeGlobalSettingsSchema>;
+
+/**
+ * Schema para creación/edición de Theme
+ */
+export const themeSchema = z.object({
+  name: z.string().min(1, 'El nombre del tema es requerido').max(100),
+  isActive: z.boolean().default(false),
+  globalSettings: themeGlobalSettingsSchema,
+});
+
+export type ThemeInput = z.infer<typeof themeSchema>;
+
+/**
+ * Schema para creación/edición de Page
+ */
+export const pageSchema = z.object({
+  title: z.string().min(1, 'El título es requerido').max(200),
+  slug: slugSchema.optional(),
+  content: z.string().min(1, 'El contenido es requerido'),
+  seoTitle: z.string().max(60).optional(),
+  seoDescription: z.string().max(160).optional(),
+  isPublished: z.boolean().default(false),
+});
+
+/**
+ * Schema para creación de Media
+ */
+export const mediaSchema = z.object({
+  fileName: z.string().min(1, 'El nombre del archivo es requerido').max(255),
+  fileUrl: z.string().url('Debe ser una URL válida'),
+  fileType: z.string().min(1, 'El tipo de archivo es requerido'),
+  size: z.number().int().min(0, 'El tamaño no puede ser negativo'),
+  altText: z.string().max(255).optional(),
+});
+
+/**
  * Helper para validar schemas de forma segura
  */
 export function validateSchema<T>(schema: z.ZodSchema<T>, data: unknown): { success: boolean; data?: T; error?: z.ZodError } {
@@ -373,5 +537,18 @@ export default {
   shippingRateSchema,
   storeConfigSchema,
   searchSchema,
+  themeGlobalSettingsSchema,
+  themeSchema,
+  pageSchema,
+  mediaSchema,
+  homeSectionSchema,
+  heroBannerPropsSchema,
+  featuredProductsPropsSchema,
+  newProductsPropsSchema,
+  categoriesPropsSchema,
+  textBlockPropsSchema,
+  imageBannerPropsSchema,
+  newsletterPropsSchema,
+  SECTION_TYPES,
   validateSchema,
 };

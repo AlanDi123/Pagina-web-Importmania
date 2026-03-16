@@ -44,7 +44,7 @@ export function HeroBanner({
       description: 'Descubrí nuestra selección de productos importados con los mejores precios del mercado.',
       ctaText: 'Ver productos',
       ctaLink: '/productos',
-      image: '/images/hero-1.jpg',
+      image: 'https://placehold.co/1920x600/00BFFF/white?text=Productos+Importados',
       backgroundColor: 'bg-gradient-to-r from-brand-primary/20 to-brand-secondary/20',
     },
     {
@@ -54,7 +54,7 @@ export function HeroBanner({
       description: 'Aprovechá nuestros envíos gratis a todo el país en pedidos que superen los $50.000.',
       ctaText: 'Comprar ahora',
       ctaLink: '/productos',
-      image: '/images/hero-2.jpg',
+      image: 'https://placehold.co/1920x600/2ECC71/white?text=Envio+Gratis',
       backgroundColor: 'bg-gradient-to-r from-brand-accent/20 to-brand-primary/20',
     },
     {
@@ -64,7 +64,7 @@ export function HeroBanner({
       description: 'Sumate al newsletter y enterate primero de nuestros lanzamientos.',
       ctaText: 'Ver novedades',
       ctaLink: '/productos?sort=newest',
-      image: '/images/hero-3.jpg',
+      image: 'https://placehold.co/1920x600/FF8C00/white?text=Nuevos+Productos',
       backgroundColor: 'bg-gradient-to-r from-brand-secondary/20 to-brand-accent/20',
     },
   ];
@@ -121,6 +121,7 @@ export function HeroBanner({
                   className="object-cover opacity-50"
                   priority={index === 0}
                   sizes="100vw"
+                  unoptimized
                 />
               )}
             </div>
@@ -143,11 +144,7 @@ export function HeroBanner({
                 )}
                 {slide.ctaLink && (
                   <Link href={slide.ctaLink}>
-                    <Button
-                      variant="brand"
-                      size="lg"
-                      className="mt-4"
-                    >
+                    <Button size="lg" className="mt-4">
                       {slide.ctaText || 'Ver más'}
                     </Button>
                   </Link>
@@ -161,41 +158,34 @@ export function HeroBanner({
       {/* Controles de navegación */}
       {heroSlides.length > 1 && (
         <>
-          {/* Flechas */}
-          <div className="absolute inset-y-0 left-0 z-20 flex items-center px-2 sm:px-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={prevSlide}
-              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-border hover:bg-white dark:hover:bg-gray-800"
-              aria-label="Slide anterior"
-            >
-              <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-            </Button>
-          </div>
-          <div className="absolute inset-y-0 right-0 z-20 flex items-center px-2 sm:px-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={nextSlide}
-              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-border hover:bg-white dark:hover:bg-gray-800"
-              aria-label="Slide siguiente"
-            >
-              <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 dark:bg-gray-800/80 hover:bg-white"
+            onClick={prevSlide}
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 dark:bg-gray-800/80 hover:bg-white"
+            onClick={nextSlide}
+          >
+            <ChevronRight className="h-6 w-6" />
+          </Button>
 
           {/* Indicadores */}
-          <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-2">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
             {heroSlides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={cn(
-                  'h-2 rounded-full transition-all duration-300',
+                  'w-2 h-2 rounded-full transition-all',
                   index === currentSlide
                     ? 'w-8 bg-brand-primary'
-                    : 'w-2 bg-white/50 dark:bg-gray-400/50 hover:bg-white/80'
+                    : 'bg-gray-400 hover:bg-gray-500'
                 )}
                 aria-label={`Ir al slide ${index + 1}`}
               />

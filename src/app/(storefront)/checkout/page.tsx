@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useCartStore } from '@/stores/cartStore';
 import { formatARS } from '@/lib/formatters';
-import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { PromoBar } from '@/components/storefront/PromoBar';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'react-hot-toast';
 import { ShoppingBag, Truck, CreditCard, CheckCircle } from 'lucide-react';
-import Link from 'next/link';
 
 type Step = 'address' | 'shipping' | 'payment' | 'review';
 
@@ -45,7 +43,6 @@ export default function CheckoutPage() {
 
   const [shippingMethod, setShippingMethod] = useState('HOME_DELIVERY');
   const [paymentMethod, setPaymentMethod] = useState('MERCADOPAGO');
-  const [couponCode, setCouponCode] = useState('');
 
   const { subtotal, total, items } = cart;
 
@@ -57,12 +54,36 @@ export default function CheckoutPage() {
     if (items.length === 0) {
       router.push('/carrito');
     }
-  }, [session, items.length, router]);
+    // Validar que todos los items tengan precio > 0
+    const hasInvalidPrices = items.some(item => item.price <= 0);
+    if (hasInvalidPrices) {
+      toast.error('Hay productos con precio inválido en el carrito');
+      router.push('/carrito');
+    }
+  }, [session, items.length, router, items]);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
     try {
+      // Validación adicional antes de enviar
+      if (items.length === 0) {
+        throw new Error('El carrito está vacío');
+      }
+
+      // Validar que todos los items tengan precio válido
+      const invalidItems = items.filter(item => item.price <= 0);
+      if (invalidItems.length > 0) {
+        throw new Error('Hay productos con precio inválido. Volvé al carrito.');
+      }
+
+      // Validar dirección si es envío a domicilio
+      if (shippingMethod === 'HOME_DELIVERY') {
+        if (!address.street || !address.number || !address.city || !address.province) {
+          throw new Error('Completá todos los datos de envío');
+        }
+      }
+
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,7 +91,7 @@ export default function CheckoutPage() {
           addressId: null,
           shippingMethod,
           paymentMethod,
-          couponCode: couponCode || undefined,
+          couponCode: undefined,
           notes: address.notes,
           address: shippingMethod !== 'PICKUP' ? address : undefined,
         }),
@@ -113,7 +134,6 @@ export default function CheckoutPage() {
   return (
     <>
       <PromoBar enabled={false} />
-      <Header logo="" categories={[]} />
 
       <main className="py-8">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -451,13 +471,29 @@ export default function CheckoutPage() {
                     </div>
                   ))}
                   <Separator />
-                  <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span>{formatARS(subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span className="text-brand-primary">{formatARS(total)}</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Subtotal</span>
+                      <span>{formatARS(subtotal)}</span>
+                    </div>
+                    {shippingMethod === 'HOME_DELIVERY' && subtotal < 150000 && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Envío</span>
+                        <span>{formatARS(5000)}</span>
+                      </div>
+                    )}
+                    {shippingMethod === 'HOME_DELIVERY' && subtotal >= 150000 && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Envío</span>
+                        <span>¡Gratis!</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                      <span>Total</span>
+                      <span className="text-brand-primary">
+                        {formatARS(total + (shippingMethod === 'HOME_DELIVERY' && subtotal < 150000 ? 5000 : 0))}
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

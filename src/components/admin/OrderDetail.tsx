@@ -185,9 +185,9 @@ export function OrderDetail({ order }: OrderDetailProps) {
               {order.items.map((item) => (
                 <div key={item.id} className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-md overflow-hidden bg-muted">
-                    {item.product.mainImage?.url ? (
+                    {item.product.images?.[0]?.url ? (
                       <img
-                        src={item.product.mainImage.url}
+                        src={item.product.images[0].url}
                         alt={item.productName}
                         className="w-full h-full object-cover"
                       />

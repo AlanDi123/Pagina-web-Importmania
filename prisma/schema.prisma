@@ -592,3 +592,52 @@ model ShippingRate {
 
   @@map("shipping_rates")
 }
+
+// =============================================
+// THEME - PERSONALIZACIÓN DE TIENDA
+// =============================================
+
+model Theme {
+  id             String   @id @default(cuid())
+  name           String
+  isActive       Boolean  @default(false)
+  globalSettings Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("themes")
+}
+
+// =============================================
+// PAGE - PÁGINAS DINÁMICAS
+// =============================================
+
+model Page {
+  id             String   @id @default(cuid())
+  title          String
+  slug           String   @unique
+  content        String   @db.Text
+  seoTitle       String?
+  seoDescription String?
+  isPublished    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("pages")
+}
+
+// =============================================
+// MEDIA - GESTIÓN DE ARCHIVOS
+// =============================================
+
+model Media {
+  id        String   @id @default(cuid())
+  fileName  String
+  fileUrl   String
+  fileType  String
+  size      Int
+  altText   String?
+  createdAt DateTime @default(now())
+
+  @@map("media")
+}

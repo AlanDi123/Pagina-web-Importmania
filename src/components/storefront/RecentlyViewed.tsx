@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import { ProductCard } from '@/components/storefront/ProductCard';
-import { useUI } from '@/hooks/useUI';
+import { useUIStore } from '@/stores/uiStore';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import type { ProductListItem } from '@/types/product';
 
@@ -11,20 +10,38 @@ interface RecentlyViewedProps {
 }
 
 export function RecentlyViewed({ currentProductId }: RecentlyViewedProps) {
-  const { recentlyViewed, getRecentlyViewedProducts } = useUI();
-
-  useEffect(() => {
-    getRecentlyViewedProducts();
-  }, [getRecentlyViewedProducts]);
+  const recentlyViewed = useUIStore((state) => state.recentlyViewed);
 
   if (!recentlyViewed || recentlyViewed.length === 0) {
     return null;
   }
 
+  // Transformar items del store al formato que espera ProductCard
+  const transformedProducts: ProductListItem[] = recentlyViewed.map((item) => ({
+    id: item.productId,
+    name: item.name,
+    slug: item.slug,
+    price: item.price,
+    mainImage: item.mainImage,
+    compareAtPrice: null,
+    productType: 'PHYSICAL' as const,
+    isActive: true,
+    isFeatured: false,
+    stock: 1,
+    averageRating: 0,
+    reviewCount: 0,
+    salesCount: 0,
+    categories: [],
+    tags: [],
+    sku: '',
+    shortDescription: null,
+    createdAt: new Date(item.viewedAt),
+  }));
+
   // Excluir producto actual si se está viendo uno
   const filteredProducts = currentProductId
-    ? recentlyViewed.filter((p) => p.id !== currentProductId)
-    : recentlyViewed;
+    ? transformedProducts.filter((p) => p.id !== currentProductId)
+    : transformedProducts;
 
   if (filteredProducts.length === 0) {
     return null;

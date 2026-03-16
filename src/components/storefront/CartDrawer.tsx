@@ -1,5 +1,6 @@
 'use client';
 
+import { memo, useMemo } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,11 +11,98 @@ import { useCartStore } from '@/stores/cartStore';
 import { formatARS } from '@/lib/formatters';
 import { ShoppingBag, X, Plus, Minus, Trash2 } from 'lucide-react';
 
+// Componente memoizado para cada item del carrito
+const CartItem = memo(({ 
+  item, 
+  onUpdateQuantity, 
+  onRemove,
+  onClose,
+}: { 
+  item: any;
+  onUpdateQuantity: (id: string, qty: number) => void;
+  onRemove: (id: string) => void;
+  onClose: () => void;
+}) => (
+  <div className="flex gap-4 bg-card rounded-lg p-3 border">
+    {/* Imagen con lazy loading */}
+    <div className="relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-muted flex-shrink-0">
+      {item.mainImage ? (
+        <Image
+          src={item.mainImage}
+          alt={item.name}
+          fill
+          className="object-cover"
+          sizes="80px"
+          loading="lazy"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+          <ShoppingBag className="h-8 w-8" />
+        </div>
+      )}
+    </div>
+
+    {/* Detalles */}
+    <div className="flex-1 min-w-0">
+      <Link
+        href={`/productos/${item.slug}`}
+        className="font-medium hover:underline line-clamp-2"
+        onClick={onClose}
+      >
+        {item.name}
+      </Link>
+
+      {item.variantName && (
+        <p className="text-sm text-muted-foreground">
+          {item.variantName}
+        </p>
+      )}
+
+      <p className="text-brand-primary font-semibold mt-1">
+        {formatARS(item.price)}
+      </p>
+
+      {/* Selector de cantidad */}
+      <div className="flex items-center gap-2 mt-2">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
+          disabled={item.quantity <= 1}
+        >
+          <Minus className="h-3 w-3" />
+        </Button>
+        <span className="w-8 text-center text-sm font-medium">
+          {item.quantity}
+        </span>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onUpdateQuantity(item.id, Math.min(item.stock, item.quantity + 1))}
+          disabled={item.quantity >= item.stock}
+        >
+          <Plus className="h-3 w-3" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 ml-auto text-destructive"
+          onClick={() => onRemove(item.id)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  </div>
+));
+CartItem.displayName = 'CartItem';
+
 export function CartDrawer() {
   const {
     items,
     isOpen,
-    isLoading,
     coupon,
     getCart,
     closeCart,
@@ -24,6 +112,12 @@ export function CartDrawer() {
 
   const cart = getCart();
   const { total, subtotal, totalDiscount, remainingForFreeShipping, isFreeShipping } = cart;
+  
+  // Memoizar cálculos
+  const itemsCount = useMemo(() => 
+    items.reduce((sum, item) => sum + item.quantity, 0), 
+    [items]
+  );
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeCart()}>
@@ -32,7 +126,7 @@ export function CartDrawer() {
           <SheetTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <ShoppingBag className="h-5 w-5" />
-              Tu Carrito ({items.reduce((sum, item) => sum + item.quantity, 0)})
+              Tu Carrito ({itemsCount})
             </span>
             <Button variant="ghost" size="icon" onClick={closeCart}>
               <X className="h-5 w-5" />
@@ -54,89 +148,17 @@ export function CartDrawer() {
           </div>
         ) : (
           <>
-            {/* Items del carrito */}
+            {/* Items del carrito - Componentes memoizados */}
             <ScrollArea className="flex-1 -mx-6 px-6">
               <div className="space-y-4 py-4">
                 {items.map((item) => (
-                  <div
+                  <CartItem
                     key={item.id}
-                    className="flex gap-4 bg-card rounded-lg p-3 border"
-                  >
-                    {/* Imagen */}
-                    <div className="relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-muted">
-                      {item.mainImage ? (
-                        <Image
-                          src={item.mainImage}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                          sizes="80px"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          <ShoppingBag className="h-8 w-8" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Detalles */}
-                    <div className="flex-1 min-w-0">
-                      <Link
-                        href={`/productos/${item.slug}`}
-                        className="font-medium hover:underline line-clamp-2"
-                        onClick={closeCart}
-                      >
-                        {item.name}
-                      </Link>
-
-                      {item.variantName && (
-                        <p className="text-sm text-muted-foreground">
-                          {item.variantName}
-                        </p>
-                      )}
-
-                      <p className="text-brand-primary font-semibold mt-1">
-                        {formatARS(item.price)}
-                      </p>
-
-                      {/* Selector de cantidad */}
-                      <div className="flex items-center gap-2 mt-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() =>
-                            updateQuantity(item.id, Math.max(1, item.quantity - 1))
-                          }
-                          disabled={item.quantity <= 1}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="w-8 text-center text-sm font-medium">
-                          {item.quantity}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() =>
-                            updateQuantity(item.id, Math.min(item.stock, item.quantity + 1))
-                          }
-                          disabled={item.quantity >= item.stock}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 ml-auto text-destructive"
-                          onClick={() => removeItem(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                    item={item}
+                    onUpdateQuantity={updateQuantity}
+                    onRemove={removeItem}
+                    onClose={closeCart}
+                  />
                 ))}
               </div>
             </ScrollArea>
@@ -208,4 +230,5 @@ export function CartDrawer() {
   );
 }
 
-export default CartDrawer;
+// Exportar componente memoizado por defecto
+export default memo(CartDrawer);

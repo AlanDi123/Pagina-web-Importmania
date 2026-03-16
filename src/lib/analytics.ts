@@ -32,7 +32,7 @@ export function isTikTokPixelEnabled(): boolean {
 export function trackPageView(url: string, title?: string) {
   if (!isAnalyticsEnabled()) return;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   (window as any).gtag?.('config', process.env.NEXT_PUBLIC_GA_ID!, {
     page_path: url,
     page_title: title,
@@ -48,7 +48,7 @@ export function trackGAEvent(
 ) {
   if (!isAnalyticsEnabled()) return;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   (window as any).gtag?.('event', eventName, eventParams);
 }
 
@@ -61,7 +61,7 @@ export function trackFacebookEvent(
 ) {
   if (!isFacebookPixelEnabled()) return;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   (window as any).fbq?.('track', eventName, eventData);
 }
 
@@ -74,7 +74,7 @@ export function trackTikTokEvent(
 ) {
   if (!isTikTokPixelEnabled()) return;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   (window as any).ttq?.track(eventName, eventData);
 }
 
@@ -419,38 +419,38 @@ export function initializeAnalytics() {
     script.src = `https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`;
     document.head.appendChild(script);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).dataLayer = (window as any).dataLayer || [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).gtag = function () {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
       (window as any).dataLayer.push(arguments);
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).gtag('js', new Date());
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).gtag('config', process.env.NEXT_PUBLIC_GA_ID);
   }
 
   // Facebook Pixel
   if (isFacebookPixelEnabled() && process.env.NEXT_PUBLIC_FB_PIXEL_ID) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).fbq = function () {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
       (window as any).fbq.callMethod
-        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? 
           (window as any).fbq.callMethod.apply((window as any).fbq, arguments)
-        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        : 
           (window as any).fbq.queue.push(arguments);
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     if (!(window as any).fbq) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
       (window as any).fbq = { queue: [] };
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).fbq.version = '2.0';
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).fbq.queue = [];
 
     const fbScript = document.createElement('script');
@@ -458,20 +458,20 @@ export function initializeAnalytics() {
     fbScript.src = 'https://connect.facebook.net/en_US/fbevents.js';
     document.head.appendChild(fbScript);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).fbq('init', process.env.NEXT_PUBLIC_FB_PIXEL_ID);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).fbq('track', 'PageView');
   }
 
   // TikTok Pixel
   if (isTikTokPixelEnabled() && process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).ttq = function () {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
       (window as any).ttq.queue.push(arguments);
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).ttq.queue = [];
 
     const ttScript = document.createElement('script');
@@ -479,9 +479,9 @@ export function initializeAnalytics() {
     ttScript.src = 'https://analytics.tiktok.com/i18n/pixel/events.js';
     document.head.appendChild(ttScript);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).ttq.load(process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     (window as any).ttq.track('PageView');
   }
 }

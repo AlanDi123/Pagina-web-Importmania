@@ -1,8 +1,14 @@
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
-import { ThemeInitializer } from '@/components/storefront/ThemeInitializer';
-import Providers from '@/components/storefront/Providers';
+import { ThemeProvider } from '@/components/storefront/ThemeProvider';
+import { ThemeStyles } from '@/components/storefront/ThemeStyles';
+import { PromoBarWrapper } from '@/components/storefront/PromoBarWrapper';
+import { HeaderWrapper } from '@/components/storefront/HeaderWrapper';
+import { FooterWrapper } from '@/components/storefront/FooterWrapper';
+import { CartDrawer } from '@/components/storefront/CartDrawer';
+import { CookieConsent } from '@/components/storefront/CookieConsent';
+import NextAuthProvider from '@/components/storefront/NextAuthProvider';
 import './globals.css';
 
 const inter = Inter({
@@ -66,9 +72,16 @@ export default function RootLayout({
           jetbrainsMono.variable
         )}
       >
-        <Providers>
-          <ThemeInitializer />
-          {children}
+        <NextAuthProvider>
+          <ThemeStyles />
+          <ThemeProvider>
+            <PromoBarWrapper />
+            <HeaderWrapper />
+            {children}
+            <FooterWrapper />
+            <CartDrawer />
+            <CookieConsent />
+          </ThemeProvider>
           <Toaster
             position="top-right"
             toastOptions={{
@@ -80,7 +93,7 @@ export default function RootLayout({
               },
               success: {
                 iconTheme: {
-                  primary: '#2ECC71',
+                  primary: 'var(--secondary-color, #2ECC71)',
                   secondary: 'white',
                 },
               },
@@ -92,7 +105,7 @@ export default function RootLayout({
               },
             }}
           />
-        </Providers>
+        </NextAuthProvider>
       </body>
     </html>
   );

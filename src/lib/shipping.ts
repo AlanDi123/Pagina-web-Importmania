@@ -71,7 +71,7 @@ function normalizeProvince(province: string): string {
     caba: 'ciudad autonoma de buenos aires',
     'buenos aires': 'buenos aires',
     cordoba: 'cordoba',
-    rio negro: 'rio negro',
+    'rio negro': 'rio negro',
   };
 
   return aliasMap[normalized] || normalized;

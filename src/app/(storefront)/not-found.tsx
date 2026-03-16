@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { Button } from '@/components/ui/button';
 import { prisma } from '@/lib/prisma';
@@ -20,7 +19,6 @@ export default async function NotFoundPage() {
 
   return (
     <>
-      <Header logo="" categories={transformedCategories} />
 
       <main className="min-h-[60vh] flex items-center justify-center py-16">
         <div className="container mx-auto max-w-2xl px-4 text-center">

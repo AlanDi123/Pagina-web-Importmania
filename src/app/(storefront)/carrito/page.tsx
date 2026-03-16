@@ -3,17 +3,14 @@
 import { useState } from 'react';
 import { useCartStore } from '@/stores/cartStore';
 import { formatARS } from '@/lib/formatters';
-import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { PromoBar } from '@/components/storefront/PromoBar';
 import { CouponInput } from '@/components/storefront/CouponInput';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingBag, Trash2, Plus, Minus } from 'lucide-react';
-import { AppliedCoupon } from '@/types/coupon';
 
 export default function CarritoPage() {
   const {
@@ -44,7 +41,6 @@ export default function CarritoPage() {
   return (
     <>
       <PromoBar enabled={false} />
-      <Header logo="" categories={[]} />
 
       <main className="py-8 min-h-[60vh]">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

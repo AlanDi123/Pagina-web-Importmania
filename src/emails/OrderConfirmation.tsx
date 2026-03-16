@@ -6,12 +6,10 @@ import {
   Section,
   Text,
   Heading,
+  Button,
   Img,
   Link,
   Hr,
-  Table,
-  TableRow,
-  TableCell,
 } from '@react-email/components';
 
 interface OrderItem {
@@ -80,17 +78,19 @@ export function OrderConfirmation({
           {/* Tabla de items */}
           <Section style={itemsSection}>
             <Heading style={itemsHeading}>Detalle del pedido</Heading>
-            <Table style={table}>
-              {items.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell style={tableCell}>
-                    <Text style={itemName}>{item.name}</Text>
-                    <Text style={itemQuantity}>Cantidad: {item.quantity}</Text>
-                  </TableCell>
-                  <TableCell style={tableCellPrice}>{item.price}</TableCell>
-                </TableRow>
-              ))}
-            </Table>
+            <table style={table}>
+              <tbody>
+                {items.map((item, index) => (
+                  <tr key={index}>
+                    <td style={tableCell}>
+                      <Text style={itemName}>{item.name}</Text>
+                      <Text style={itemQuantity}>Cantidad: {item.quantity}</Text>
+                    </td>
+                    <td style={tableCellPrice}>{item.price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </Section>
 
           {/* Resumen de totales */}

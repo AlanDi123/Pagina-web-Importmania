@@ -64,12 +64,22 @@ export interface EmptyCart {
 }
 
 /**
- * Datos para agregar al carrito
+ * Datos para agregar al carrito (con información completa del producto)
  */
 export interface AddToCartData {
   productId: string;
-  variantId?: string;
+  variantId?: string | null;
   quantity: number;
+  name?: string;
+  slug?: string;
+  sku?: string;
+  price?: number;
+  compareAtPrice?: number | null;
+  stock?: number;
+  mainImage?: string | null;
+  variantName?: string | null;
+  variantOptions?: Record<string, string> | null;
+  isDigital?: boolean;
 }
 
 /**

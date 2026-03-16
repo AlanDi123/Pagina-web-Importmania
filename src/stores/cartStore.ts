@@ -127,14 +127,14 @@ export const useCartStore = create<CartState>()(
       // Agregar item al carrito
       addItem: (item) => {
         const { items } = get();
-        
+
         // Verificar si el producto ya está en el carrito
         const existingItemIndex = items.findIndex(
           (i) => i.productId === item.productId && i.variantId === item.variantId
         );
-        
+
         let newItems: CartItemDisplay[];
-        
+
         if (existingItemIndex >= 0) {
           // Actualizar cantidad del item existente
           newItems = items.map((i, index) => {
@@ -152,32 +152,34 @@ export const useCartStore = create<CartState>()(
             return i;
           });
         } else {
-          // Agregar nuevo item
+          // Agregar nuevo item con datos completos
           const newItem: CartItemDisplay = {
             id: `temp-${Date.now()}`,
             productId: item.productId,
             variantId: item.variantId || null,
             quantity: item.quantity,
-            name: '', // Se completa desde el componente
-            slug: '',
-            sku: '',
-            price: 0,
-            compareAtPrice: null,
-            stock: 0,
-            mainImage: null,
-            variantName: null,
-            variantOptions: null,
-            subtotal: 0,
-            discountPercentage: null,
-            isAvailable: true,
-            isDigital: false,
+            name: item.name || '',
+            slug: item.slug || '',
+            sku: item.sku || '',
+            price: item.price || 0,
+            compareAtPrice: item.compareAtPrice || null,
+            stock: item.stock || 0,
+            mainImage: item.mainImage || null,
+            variantName: item.variantName || null,
+            variantOptions: item.variantOptions || null,
+            subtotal: (item.price || 0) * item.quantity,
+            discountPercentage: item.compareAtPrice
+              ? Math.round(((item.compareAtPrice - (item.price || 0)) / item.compareAtPrice) * 100)
+              : null,
+            isAvailable: (item.stock || 0) >= item.quantity,
+            isDigital: item.isDigital || false,
           };
           newItems = [...items, newItem];
         }
-        
+
         set({ items: newItems });
         set({ isOpen: true }); // Abrir drawer al agregar
-        
+
         toast.success('Producto agregado al carrito');
       },
       

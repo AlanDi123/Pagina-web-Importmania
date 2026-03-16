@@ -3,13 +3,11 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Header } from '@/components/storefront/Header';
 import { Footer } from '@/components/storefront/Footer';
 import { PromoBar } from '@/components/storefront/PromoBar';
 import { Breadcrumbs } from '@/components/storefront/Breadcrumbs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { formatARS } from '@/lib/formatters';
 import { Package, Heart, User, Copy } from 'lucide-react';
 import Link from 'next/link';
 
@@ -63,11 +61,6 @@ export default async function CuentaPage() {
       <PromoBar
         text={(config.promoBarText as string) || '¡Envío gratis en compras mayores a $50.000!'}
         enabled={(config.promoBarEnabled as boolean) || true}
-      />
-
-      <Header
-        logo={config.logo as string}
-        categories={[]}
       />
 
       <main className="py-8 min-h-[60vh]">
